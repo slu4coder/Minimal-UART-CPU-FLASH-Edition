@@ -17,6 +17,7 @@ WHAT YOU GET HERE:
   
   ● Cross-assembler 'asm.exe' running on Windows to comfortably write, assemble and upload your own software
 
+
 TECHNICAL SPECIFICATION:
   
   ● Comparable to Altair 8800 or Apple 1
@@ -38,6 +39,7 @@ TECHNICAL SPECIFICATION:
   ● 16 control signals, 2 registers A and B, ALU (arithmetic and logic unit) = simple adder, 3 flags (negative, carry and zero)
   
   ● Built from 74HCxx TTL logic on 115mm x 175mm PCB
+
 
 I hope you find this information useful, educational or otherwise interesting. I'd love to hear about you build, so meet me on YouTube.
 
