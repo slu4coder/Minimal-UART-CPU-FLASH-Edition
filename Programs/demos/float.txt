@@ -1,0 +1,821 @@
+;	Single Precision 32-bit Floating Point Math Library and Interpreter by Carsten Herting (2021)
+; Front-End for arbitrary math expressions based upon Backus-Naur-Form (BNF)
+; See article series by Jack Crenshaw "Let's Build a Compiler" (1988).
+
+
+
+; ********************
+;
+; calculator front-end
+;
+; ********************
+*=$8000					LDI $fe STA $ffff							; init system stack
+								LDI <calctext STS -3 LDI >calctext STS -4 JPS PrintText
+start:					JPS FloatInit									; init floating point library (stack)
+								JPS ReadLine									; read in a number & reset the line pointer						
+								JPS Expression								; treat the expression
+								LDS -2 CPI 0 BEQ Error				; processed successfully?
+									JPS Look LDS -2
+									CPI 10 BNE Error						; last char = LF means there is nothing left unprocessed								
+										LDI '=' OUT JPS WaitUART		
+										JPS FloatPrint
+										JPA Enter
+	Error:				LDI <errortext STS -3 LDI >errortext STS -4 JPS PrintText
+	Enter:				LDI 10 OUT JPS WaitUART
+								JPA start
+
+
+
+; ****************************************************************************************************************
+
+
+
+ReturnFalse:		LDI 0 STS 0 RTS												; signal FAILURE
+								
+ReturnTrue:			LDI 1 STS 0 RTS												; signal SUCCESS
+								
+Look:						LDR lineptr STS 0 RTS									; return current char
+								
+Take:						LDR lineptr STS 0											; return current char and proceed
+								INW lineptr
+								RTS
+
+Next:						LDR lineptr														; return next non-space char
+								CPI ' ' BNE nextende
+									INW lineptr
+									JPA Next
+	nextende:			STS 0 RTS															; return last char code
+
+Match:					LDS 0 PHS															; return if next non-space char matches the <argument>
+								JPS Next
+								PLS
+								CPR lineptr BNE ReturnFalse
+									INW lineptr
+									JPA ReturnTrue
+
+IsAddOp:				LDS 0																	; + or -?	
+								CPI '+' BEQ ReturnTrue
+								CPI '-' BEQ ReturnTrue
+									JPA ReturnFalse
+
+IsMulOp:				LDS 0																	; * or /?
+								CPI '*' BEQ ReturnTrue
+								CPI '/' BEQ ReturnTrue
+									JPA ReturnFalse
+
+Add:						JPS Term
+								LDS -2 CPI 0 BEQ ReturnFalse
+									JPS FloatCopy
+									JPS FloatPull
+									JPS FloatAdd
+									JPA ReturnTrue
+
+Sub:						JPS Term
+								LDS -2 CPI 0 BEQ ReturnFalse
+									JPS FloatCopy
+									JPS FloatPull
+									JPS FloatSub
+									JPA ReturnTrue
+
+Mul:						JPS Factor
+								LDS -2 CPI 0 BEQ ReturnFalse
+									JPS FloatCopy
+									JPS FloatPull
+									JPS FloatMul
+									JPA ReturnTrue
+
+Div:						JPS Factor
+								LDS -2 CPI 0 BEQ ReturnFalse
+									JPS FloatCopy
+									JPS FloatPull
+									JPS FloatDiv
+									JPA ReturnTrue
+
+Expression:			JPS Term															; <expression> :== <term> [<addop> <term>]
+								LDS -2 CPI 0 BEQ ReturnFalse
+	exploop:				JPS Next
+									JPS IsAddOp
+									LDS -2 CPI 0 BEQ ReturnTrue					; addop is only optional
+										JPS FloatPush
+										JPS Take
+										LDS -2 CPI '+' BEQ expadd											
+											JPS Sub
+											LDS -2 CPI 0 BEQ ReturnFalse
+												JPA exploop
+		expadd:					JPS Add
+										LDS -2 CPI 0 BEQ ReturnFalse
+											JPA exploop
+
+Term:						JPS SignedFactor											; <term> :== <signedfactor> [<mulop> <factor>]
+								LDS -2 CPI 0 BEQ ReturnFalse
+	termloop:				JPS Next
+									JPS IsMulOp
+									LDS -2 CPI 0 BEQ ReturnTrue
+										JPS FloatPush
+										JPS Take LDS -2
+										CPI '*' BEQ termmult
+											JPS Div
+											LDS -2 CPI 0 BEQ ReturnFalse
+												JPA termloop
+		termmult:				JPS Mul
+										LDS -2 CPI 0 BEQ ReturnFalse
+											JPA termloop
+
+Factor:					JPS Next
+								JPS FloatRead													; <factor> ::= <number> | (<Expression>)
+								LDS -2 CPI 0 BNE ReturnTrue
+									LDI '(' STS -2 JPS Match
+									LDS -2 CPI 0 BEQ ReturnFalse
+										JPS Expression
+										LDS -2 CPI 0 BEQ ReturnFalse
+										LDI ')' STS -2 JPS Match
+										LDS -2 CPI 0 BEQ ReturnFalse
+											JPA ReturnTrue
+
+SignedFactor:		JPS Next
+								JPS IsAddOp														; <signed factor> ::= [<addop>] <factor>
+								LDS -2 CPI 0 BEQ Factor								; weiter bei Factor
+									JPS Take LDS -2
+									CPI '+' BEQ Factor									; weiter bei Factor
+										JPS Factor												; treat unary minus
+										LDS -2 CPI 0 BEQ ReturnFalse
+											JPS FloatNeg
+											JPA ReturnTrue
+
+
+
+; ****************************************************************************************************************
+
+
+
+; *********************************************************
+;
+; Floating point operations Add, Sub, Muls, Divs (IEEE 754)
+;
+; *********************************************************
+FloatInit:			LDI <floatStack STA floatSP+0		; init floating point stack pointer
+								LDI >floatStack STA floatSP+1
+								RTS
+
+FloatMul:				JPS floatExtractA
+								JPS floatExtractB
+								JPS floatexMul
+								JPS floatexToEven
+								JPS floatexCompose
+								RTS
+
+FloatDiv:				JPS floatExtractA
+								JPS floatExtractB
+								JPS floatexDiv
+								JPS floatexToUp
+								JPS floatexCompose
+								RTS
+
+FloatAdd:				JPS floatExtractA
+								JPS floatExtractB
+								JPS floatexAdd
+								JPS floatexToEven
+								JPS floatexCompose
+								RTS
+
+FloatNeg:				LDI $80 ADB floatA+3
+								RTS
+
+FloatSub:				LDI $80 ADB floatB+3
+								JPS FloatAdd
+								RTS
+
+FloatCopy:			LDA floatA+0 STA floatB+0
+								LDA floatA+1 STA floatB+1
+								LDA floatA+2 STA floatB+2
+								LDA floatA+3 STA floatB+3
+								RTS
+
+FloatPush:			LDA floatA+0 STR floatSP DEW floatSP
+								LDA floatA+1 STR floatSP DEW floatSP
+								LDA floatA+2 STR floatSP DEW floatSP
+								LDA floatA+3 STR floatSP DEW floatSP
+								RTS
+
+FloatPull:			INW floatSP LDR floatSP STA floatA+3
+								INW floatSP LDR floatSP STA floatA+2
+								INW floatSP LDR floatSP STA floatA+1
+								INW floatSP LDR floatSP STA floatA+0
+								RTS
+
+
+
+; ***************************************************************
+;
+; Floating point operations Add, Sub, Mul, Div on expanded floats
+; 
+; ***************************************************************
+floatexMul:			LDI 0 CPA floatExpA BNE fm_anotzero									; A = 0?
+									RTS
+	fm_anotzero:	CPA floatExpB BNE fm_bnotzero												; B = 0?
+	fm_retzero:			LDI '?' OUT
+									CLB floatExpA RTS																	; return A = 0								
+	fm_bnotzero:	CLB floatExpA+1																			; calculate resulting exponent in A
+								LDA floatExpB ADW floatExpA LDI 127 SBW floatExpA
+								LDA floatExpA+1 CPI 0 BNE fm_retzero								; check overflow ???
+								LDA floatSignB ADB floatSignA												; calculate resulting sign (use $80 + $80 = $100)
+								CLW floatManA+4 CLW floatManA+6											; clear upper part of mantissa A
+								CLW floatStore+0 CLW floatStore+2 									; clear result
+								CLW floatStore+4 CLW floatStore+6
+								LDI 32 STA floatcount
+	fmloop:					LDA floatManB+3 LSR STA floatManB+3								; shift last bit of B out right in carry
+									LDA floatManB+2 ROR STA floatManB+2
+									LDA floatManB+1 ROR STA floatManB+1
+									LDA floatManB+0 ROR STA floatManB+0
+									BCC fm_dontadda
+										LDA floatManA+0 ADW floatStore+0 LDI 0 ACW floatStore+2 LDI 0 ACW floatStore+4	LDI 0 ACW floatStore+6	; add A to R (64 bit)
+										LDA floatManA+1 ADB floatStore+1 LDI 0 ACW floatStore+2 LDI 0 ACW floatStore+4 LDI 0 ACW floatStore+6
+										LDA floatManA+2 ADW floatStore+2 LDI 0 ACW floatStore+4 LDI 0 ACW floatStore+6
+										LDA floatManA+3 ADB floatStore+3 LDI 0 ACW floatStore+4 LDI 0 ACW floatStore+6
+										LDA floatManA+4 ADW floatStore+4 LDI 0 ACW floatStore+6
+										LDA floatManA+5 ADB floatStore+5 LDI 0 ACW floatStore+6
+										LDA floatManA+6 ADW floatStore+6
+										LDA floatManA+7 ADB floatStore+7
+		fm_dontadda:	LDA floatManA+0 LSL STA floatManA+0				; enhance the value of A by one order of magnitude
+									LDA floatManA+1 ROL STA floatManA+1
+									LDA floatManA+2 ROL STA floatManA+2
+									LDA floatManA+3 ROL STA floatManA+3
+									LDA floatManA+4 ROL STA floatManA+4
+									LDA floatManA+5 ROL STA floatManA+5
+									LDA floatManA+6 ROL STA floatManA+6
+									LDA floatManA+7 ROL STA floatManA+7
+								  DEB floatcount BNE fmloop
+								LDA floatStore+7 LSL BCC fm_shift					; upper bit means "2" in multiplication
+									INB floatExpA														; upper bit now "1" again
+									LDA floatStore+4 STA floatManA+0				; copy 32 bits of result down into A
+									LDA floatStore+5 STA floatManA+1
+									LDA floatStore+6 STA floatManA+2
+									LDA floatStore+7 STA floatManA+3
+									RTS
+	fm_shift:			LDA floatStore+3 LSL											; shift "1" from 63th to 32th position of A
+								LDA floatStore+4 ROL STA floatManA+0
+								LDA floatStore+5 ROL STA floatManA+1
+								LDA floatStore+6 ROL STA floatManA+2
+								LDA floatStore+7 ROL STA floatManA+3
+								RTS
+
+floatexDiv:			LDI 0 CPA floatExpA BNE fd_anotzero									; A = 0?
+									RTS
+	fd_anotzero:	CLB floatExpA+1																			; calculate resulting exponent in A
+								LDA floatExpB SBW floatExpA LDI 127 ADW floatExpA
+								LDA floatExpA+1 CPI 0 BNE fm_retzero								; check overflow ???
+								LDA floatSignB ADB floatSignA												; calculate resulting sign (use $80 + $80 = $100)
+								CLB floatManA+4 																		; clear upper part of mantissa A used for overflow							
+								LDI 32 STA floatcount																; (a clearing of ManR is not necessary here)
+	fd_loop:				LDA floatStore+0 LSL STA floatStore+0							; shift R left
+									LDA floatStore+1 ROL STA floatStore+1
+									LDA floatStore+2 ROL STA floatStore+2
+									LDA floatStore+3 ROL STA floatStore+3
+									LDA floatManA+4 CPI 0 BNE fd_bfitsina							; fits b into a?
+									LDA floatManA+3 CPA floatManB+3 BCC fd_alessb BNE fd_bfitsina
+									LDA floatManA+2 CPA floatManB+2 BCC fd_alessb BNE fd_bfitsina
+									LDA floatManA+1 CPA floatManB+1 BCC fd_alessb BNE fd_bfitsina
+									LDA floatManA+0 CPA floatManB+0 BCC fd_alessb
+	fd_bfitsina:			LDA floatManB+0 SBW floatManA+0 LDI 0 SCW floatManA+2 LDI 0 SCB floatManA+4	; mana = mana - manb
+										LDA floatManB+1 SBB floatManA+1 LDI 0 SCW floatManA+2 LDI 0 SCB floatManA+4
+										LDA floatManB+2 SBW floatManA+2 LDI 0 SCB floatManA+4
+										LDA floatManB+3 SBW floatManA+3
+										INB floatStore+0																; add in 1 (lowest bit empty due to shifting)
+	fd_alessb:			LDA floatManA+0 LSL STA floatManA+0								; shift A left
+									LDA floatManA+1 ROL STA floatManA+1
+									LDA floatManA+2 ROL STA floatManA+2
+									LDA floatManA+3 ROL STA floatManA+3
+									LDA floatManA+4 ROL STA floatManA+4
+									DEB floatcount BNE fd_loop
+								LDA floatStore+3 LSL BCS fd_noshift									; "1" bit unused?
+									DEB floatExpA																			; normalize result in A
+									LDA floatStore+0 LSL STA floatManA+0							; shift R left to A
+									LDA floatStore+1 ROL STA floatManA+1
+									LDA floatStore+2 ROL STA floatManA+2
+									LDA floatStore+3 ROL STA floatManA+3
+									RTS
+	fd_noshift:		LDA floatStore+0 STA floatManA+0										; just copy R to A
+								LDA floatStore+1 STA floatManA+1
+								LDA floatStore+2 STA floatManA+2
+								LDA floatStore+3 STA floatManA+3
+								RTS																									; result is in floatex A
+						
+floatexAdd:			LDI 0 CPA floatExpA BNE fa_anotzero									; A = 0?
+									LDA floatSignB STA floatSignA LDA floatExpB STA floatExpA						; return A = 0 + B
+									LDA floatManB+0 STA floatManA+0 LDA floatManB+1 STA floatManA+1
+									LDA floatManB+2 STA floatManA+2 LDA floatManB+3 STA floatManA+3
+									RTS
+	fa_anotzero:	CPA floatExpB BNE fa_bnotzero												; B = 0?
+									RTS																								; return A = A + 0 
+	fa_bnotzero:	LDA floatExpB CPA floatExpA BCC fa_abiggereq BNE fa_asmaller					; check wether exponent a >= b
+									LDA floatManB+3 CPA floatManA+3 BCC fa_abiggereq BNE fa_asmaller		; need to check mantissas too
+									LDA floatManB+2 CPA floatManA+2 BCC fa_abiggereq BNE fa_asmaller
+									LDA floatManB+1 CPA floatManA+1 BCC fa_abiggereq BNE fa_asmaller
+									LDA floatManB+0 CPA floatManA+0 BCC fa_abiggereq BEQ fa_abiggereq
+		fa_asmaller:		LDA floatManB+0 STA floatStore+0 LDA floatManB+1 STA floatStore+1	; swap A <-> B
+										LDA floatManB+2 STA floatStore+2 LDA floatManB+3 STA floatStore+3	; copy B to R temporarily
+										LDA floatSignB STA floatStore+4 LDA floatExpB STA floatStore+5
+										LDA floatManA+0 STA floatManB+0 LDA floatManA+1 STA floatManB+1 	; copy A to B
+										LDA floatManA+2 STA floatManB+2 LDA floatManA+3 STA floatManB+3
+										LDA floatSignA STA floatSignB LDA floatExpA STA floatExpB
+										LDA floatStore+0 STA floatManA+0 LDA floatStore+1 STA floatManA+1	; copy R(=B) to A
+										LDA floatStore+2 STA floatManA+2 LDA floatStore+3 STA floatManA+3
+										LDA floatStore+4 STA floatSignA LDA floatStore+5 STA floatExpA
+	fa_abiggereq:	LDA floatExpA SBA floatExpB STA floatcount CPI 32 BCC fa_loop1			; check if alligned B is much too small
+									RTS
+	fa_loop1:			DEB floatcount BCC fa_alligned
+									LDA floatManB+3 LSR STA floatManB+3																; shift B to the right for allignment
+									LDA floatManB+2 ROR STA floatManB+2
+									LDA floatManB+1 ROR STA floatManB+1
+									LDA floatManB+0 ROR STA floatManB+0
+									JPA fa_loop1
+	fa_alligned:	CLB floatManA+4																					; use this as carry byte
+								LDA floatSignA ADA floatSignB BEQ fa_aplusb							; check if signs are equal or different
+									LDA floatManB+0 SBW floatManA+0 LDI 0 SCW floatManA+2 LDI 0 SCB floatManA+4		; calculate a - b here
+									LDA floatManB+1 SBB floatManA+1 LDI 0 SCW floatManA+2 LDI 0 SCB floatManA+4
+									LDA floatManB+2 SBW floatManA+2 LDI 0 SCB floatManA+4
+									LDA floatManB+3 SBB floatManA+3 LDI 0 SCB floatManA+4
+									JPA fa_checkfor0
+	fa_aplusb:		LDA floatManB+0 ADW floatManA+0 LDI 0 ACW floatManA+2 LDI 0 ACB floatManA+4
+								LDA floatManB+1 ADB floatManA+1 LDI 0 ACW floatManA+2 LDI 0 ACB floatManA+4
+								LDA floatManB+2 ADW floatManA+2 LDI 0 ACB floatManA+4
+								LDA floatManB+3 ADB floatManA+3 LDI 0 ACB floatManA+4
+	fa_checkfor0:	LDI 0																										; check if result is zero
+								CPA floatManA+0 BNE fa_notzero
+								CPA floatManA+1 BNE fa_notzero
+								CPA floatManA+2 BNE fa_notzero
+								CPA floatManA+3 BNE fa_notzero
+								CPA floatManA+4 BNE fa_notzero
+									CLB floatExpA																					; return A = 0
+									RTS
+	fa_notzero:		LDA floatManA+4 CPI $01 BNE fa_notover									; check for overflow in A result
+									INB floatExpA SEC																			; overflow happened
+									LDA floatManA+3 ROR STA floatManA+3										; shift down with "1" as C
+									LDA floatManA+2 ROR STA floatManA+2
+									LDA floatManA+1 ROR STA floatManA+1
+									LDA floatManA+0 ROR STA floatManA+0
+	fa_notover:		LDA floatManA+3 CPI $80 BCS fa_return										; allign from the bottom up (while loop)
+									DEB floatExpA
+									LDA floatManA+0 LSL STA floatManA+0										; shift up
+									LDA floatManA+1 ROL STA floatManA+1
+									LDA floatManA+2 ROL STA floatManA+2
+									LDA floatManA+3 ROL STA floatManA+3
+									JPA fa_notover
+	fa_return:		RTS
+
+
+
+; **********************************************************************
+;
+; Handling functions for expanded floats (extraction, rounding, testing)
+;
+; **********************************************************************
+floatExtractA:	CLB floatSignA
+								LDA floatA+3 LSL STA floatExpA BCC fea_notneg
+									LDI $80 STA floatSignA												; set sign bit
+	fea_notneg:		LDA floatA+2 LSL BCC fea_mant										; read exponent's lowest bit
+									INB floatExpA
+	fea_mant:			LDA floatA+2 LSL SEC ROR STA floatManA+3				; extract mantissa to 32 bit
+								LDA floatA+1 STA floatManA+2
+								LDA floatA+0 STA floatManA+1
+								CLB floatManA+0
+								RTS
+
+floatExtractB:	CLB floatSignB
+								LDA floatB+3 LSL STA floatExpB BCC feb_notneg
+									LDI $80 STA floatSignB												; set sign bit
+	feb_notneg:		LDA floatB+2 LSL BCC feb_mant										; read exponent's lowest bit
+									INB floatExpB
+	feb_mant:			LDA floatB+2 LSL SEC ROR STA floatManB+3				; extract mantissa
+								LDA floatB+1 STA floatManB+2
+								LDA floatB+0 STA floatManB+1
+								CLB floatManB+0
+								RTS
+
+floatexToEven:	LDI $80 CPA floatManA+0 BCC fx_doup BNE fx_noup
+									LDA floatManA+1 LSR BCC fx_noup
+										JPA fx_doup															; round to even
+
+floatexToUp:		LDA floatManA+0 CPI $80 BCC fx_noup					; round result to up
+	fx_doup:				INB floatManA+1 LDI 0 ACW floatManA+2 BCC fx_noup	; check for overflow
+										LDI $80 STA floatManA+3									; all other stuff is zero after overflow anyway
+										INB floatExpA BCC fx_noup								; check for exponent overflow
+											LDI 255 STA floatExpA									; return result INFINITY
+											CLW floatManA+0 CLW floatManA+2
+	fx_noup:			RTS
+
+floatexCompose:	LDA floatManA+3 LSL LSR STA floatA+2				; clear "1" bit, align "1/2" with 23rd bit
+								LDA floatManA+2 STA floatA+1
+								LDA floatManA+1 STA floatA+0
+								LDA floatSignA LSL LDA floatExpA ROR STA floatA+3 LDI 0 ROR ADB floatA+2		; 24th bit = lowest exp bit
+								RTS
+
+floatexSetB10:	LDI 130 STA floatExpB LDI $a0 STA floatManB+3			; set floatex B to 10
+								CLB floatManB+2 CLW floatManB+0
+								RTS
+
+floatexSetB:	LDI <fxb_table STA floatPtr1+0								; Sets floatex B to 0...9 according to table, SP-2: table index
+							LDI >fxb_table STA floatPtr1+1								; init table pointer
+							LDS 0 LSL ADW floatPtr1
+							LDR floatPtr1 STA floatExpB INW floatPtr1
+							LDR floatPtr1 STA floatManB+3
+							CLB floatSignB CLW floatManB+0 CLB floatManB+2	; clear the rest
+							RTS
+
+	fxb_table:	0, $00, 127, $80, 128, $80, 128, $c0, 129, $80, 129, $a0, 129, $c0, 129, $e0, 130, $80, 130, $90
+
+
+
+; ******************************************************************************
+;
+; Prints out the floating point number A in rounded decimal or scientific format
+;
+; ******************************************************************************
+FloatPrint:			CLB floatEE CLB floatSignB											; clear the output buffer
+								LDI <floatIntStart STA floatPtr+0
+								LDI >floatIntStart STA floatPtr+1
+								LDI 19 STA floatcount														; total length of output buffer including trailing zero
+	fp_outclear:		LDI 0 STR floatPtr INW floatPtr								; fill the output buffer with 0
+									DEB floatcount BNE fp_outclear
+
+								JPS floatExtractA																; extract floatA
+								LDA floatExpA CPI 0 BNE fp_notzero
+									LDI '0' OUT JPS WaitUART RTS														; case A = 0
+									
+								; ***** CHECK FOR SCIENTIFIC NOTATION *****
+	fp_notzero:		LDA floatExpA CPI $92 BCC fp_notbig BNE fp_while1					; check for >1000000 (scientific notation)
+								LDA floatManA+3 CPI $f4 BCC fp_notbig BNE fp_while1
+								LDA floatManA+2 CPI $24 BCC fp_notbig BNE fp_while1
+								LDA floatManA+1 CPI $00 BEQ fp_notbig
+									; case A > 1000000 "big" => divide by 10 until result is < 10
+	fp_while1:			JPS floatexSetB10
+									JPS floatexDiv
+									INB floatEE
+									LDI 130 CPA floatExpA BCC fp_while1	BNE fp_notsmall			; check for < 10 (scientific notation)
+									LDI $a0 CPA floatManA+3 BCC fp_while1 BEQ fp_while1
+										JPA fp_notsmall
+	fp_notbig:		LDA floatExpA CPI $6b BCS fp_notsmall BNE fp_while2 			; check for < 0.000001 (scientific notation)
+								LDA floatManA+3 CPI $86 BCS fp_notsmall BNE fp_while2
+								LDA floatManA+2 CPI $37 BCS fp_notsmall BNE fp_while2
+								LDA floatManA+1 CPI $bd BCS fp_notsmall
+									; case A < 0.000001 "small"
+	fp_while2:			JPS floatexSetB10
+									JPS floatexMul
+									DEB floatEE
+									LDA floatExpA CPI $7f BCC fp_while2											; check for < 0.000001 (scientific notation)
+									LDA floatManA+3 CPI $80 BCC fp_while2
+								
+								; ***** GENERATE INTEGRAL AND FRACTIONAL PART *****
+	fp_notsmall:	LDA floatExpA SBI 127 BCC fp_expisneg
+									; case postive or zero exponent: calculate integer and fractional part (align "1/2" with 32th bit)
+									NEG ADI 31 STA floatcount												; intpart = intpart >> (31 - (a.exp-127))
+									LDA floatManA+0 STA floatInt+0 STA floatFrac+0	; copy mantissa to int part and frac part
+									LDA floatManA+1 STA floatInt+1 STA floatFrac+1
+									LDA floatManA+2 STA floatInt+2 STA floatFrac+2
+									LDA floatManA+3 STA floatInt+3 STA floatFrac+3
+		fpshift1:				DEB floatcount																; loop for shifting int part right
+										BCC fpend1
+											LDA floatInt+3 LSR STA floatInt+3
+											LDA floatInt+2 ROR STA floatInt+2
+											LDA floatInt+1 ROR STA floatInt+1
+											LDA floatInt+0 ROR STA floatInt+0
+											JPA fpshift1
+		fpend1:				LDA floatExpA SBI 126 STA floatcount						; fracpart = fracpart << ((a.exp-127) + 1)
+		fpshift2:				LDA floatFrac+0 LSL STA floatFrac+0						; loop for aligning "1/2" bit with 32th (shift left)
+										LDA floatFrac+1 ROL STA floatFrac+1
+										LDA floatFrac+2 ROL STA floatFrac+2
+										LDA floatFrac+3 ROL STA floatFrac+3
+										DEB floatcount
+										BNE fpshift2
+									JPA fp_printint																	; int and frac parts are done!
+								; case negative exponent: calculate integer and fractional part
+	fp_expisneg:	NEG DEC STA floatcount
+								CLW floatInt+0 CLW floatInt+2											; clear int part
+								LDA floatManA+0 STA floatFrac+0										; copy mantissa to frac part
+								LDA floatManA+1 STA floatFrac+1
+								LDA floatManA+2 STA floatFrac+2
+								LDA floatManA+3 STA floatFrac+3
+		fpshift3:			DEB floatcount																	; loop for aligning "1/2" bit with 24th (shift right)
+									BCC fp_printint
+										LDA floatFrac+3 LSR STA floatFrac+3
+										LDA floatFrac+2 ROR STA floatFrac+2
+										LDA floatFrac+1 ROR STA floatFrac+1
+										LDA floatFrac+0 ROR STA floatFrac+0
+										JPA fpshift3	
+
+								; ***** OUTPUT INTEGER PART INTO BUFFER *****
+	fp_printint:	LDI <floatIntEnd STA floatPtr+0										; init pointer to the "1" digit in the output buffer
+								LDI >floatIntEnd STA floatPtr+1
+								JPS fp_checkint LDS -2 CPI 0 BNE fp_intloop				; check if int part is != 0
+									LDI '0' STR floatPtr														; integer part is zero => ouput a "0"
+									JPA fp_printfrac	
+	fp_intloop:		CLB	floatInt+3																		; muss erfolgen (= clear remainder)
+								LDI 24 STA floatcount
+								CLC
+	fp_doloop:		LDA floatInt+0 ROL STA floatInt+0		; shift int part to the left
+								LDA floatInt+1 ROL STA floatInt+1
+								LDA floatInt+2 ROL STA floatInt+2
+								LDA floatInt+3 ROL STA floatInt+3
+								DEB floatcount BCC fp_loopdone
+									LDA floatInt+3 CPI 10 BCC fp_doloop	; jump back with C = 0
+										SBI 10 STA floatInt+3
+										JPA fp_doloop											; jump back with C = 1
+	fp_loopdone:	JPS fp_checkint LDS -2 CPI 0 BEQ fp_printfrac
+									LDA floatInt+3 LSR ADI '0'				; full shift completed, resulted shifted back in
+									STR floatPtr DEW floatPtr					; move back like a stack
+									JPA fp_intloop
+	
+								; ***** OUTPUT FRACTIONAL PART *****
+	fp_printfrac:	INW floatPtr
+								LDA floatPtr+0 STA floatPtr1+0					; store a pointer to the first non-zero digit of output
+								LDA floatPtr+1 STA floatPtr1+1
+								LDI <floatFracStart STA floatPtr+0			; init pointer to the "1/2" digit in the output buffer
+								LDI >floatFracStart STA floatPtr+1
+								LDI 10 STA floatcount										; produce a maximum of N digits after the decimal point
+	fp_fracloop:	JPS fp_checkfrac LDS -2 CPI 0 BEQ fp_alldone
+									CLB floatFrac+4
+									LDA floatFrac+0 LSL STA floatFrac+0 STA floatInt+0	; floatfrac = floatfrac << 1
+									LDA floatFrac+1 ROL STA floatFrac+1 STA floatInt+1
+									LDA floatFrac+2 ROL STA floatFrac+2 STA floatInt+2
+									LDA floatFrac+3 ROL STA floatFrac+3 STA floatInt+3
+									LDA floatFrac+4 ROL STA floatFrac+4 STA floatInt+4
+									LDA floatInt+0 LSL STA floatInt+0										; floatInt = floatfrac << 3
+									LDA floatInt+1 ROL STA floatInt+1
+									LDA floatInt+2 ROL STA floatInt+2
+									LDA floatInt+3 ROL STA floatInt+3
+									LDA floatInt+4 ROL STA floatInt+4
+									LDA floatInt+0 LSL STA floatInt+0
+									LDA floatInt+1 ROL STA floatInt+1
+									LDA floatInt+2 ROL STA floatInt+2
+									LDA floatInt+3 ROL STA floatInt+3
+									LDA floatInt+4 ROL STA floatInt+4
+									LDA floatInt+0 ADW floatFrac+0 LDI 0 ACW floatFrac+2 LDI 0 ACB floatFrac+4				; floatFrac += floatInt (now times 10)
+									LDA floatInt+1 ADB floatFrac+1 LDI 0 ACW floatFrac+2 LDI 0 ACB floatFrac+4
+									LDA floatInt+2 ADW floatFrac+2 LDI 0 ACB floatFrac+4
+									LDA floatInt+3 ADW floatFrac+3											; "W" also use overflow byte here
+									LDA floatInt+4 ADB floatFrac+4
+									LDA floatFrac+4 ADI '0'
+									STR floatPtr INW floatPtr														; store digit in buffer
+									DEB floatcount BNE fp_fracloop											; count down the printed digits
+
+								; ***** DO POST-PROCESSING DIGIT ROUNDING *****
+	fp_alldone:		LDI 7 STA floatcount ADW floatPtr1									; advance pointer from first digit to the rounding digit
+								CLB floatAddup
+								LDR floatPtr1 CPI '5' BCC fp_addupok								; enough for rounding up (>= 5)?
+									INB floatAddup																		; initial round-up!!!
+	fp_addupok:		LDI 0 STR floatPtr1																	; kill the rounding digit
+								STA floatLast DEW floatPtr1													; remember last and point to first relevant digit
+	fp_rloop:			LDR floatPtr1 ADA floatAddup STR floatPtr1					; 0 wird nicht verändert
+								CPI 58 BCC fp_9orless																; 58 is one above '9'
+									LDI '0' STR floatPtr1															; overflow! set back to '0'
+									LDI 1 STA floatAddup JPA fp_chkend
+	fp_9orless:		CLB floatAddup
+	fp_chkend:		LDA floatLast CPI 0 BNE fp_notlast
+									LDA floatPtr1+1 CPI >floatFracStart BCC fp_notlast
+										LDA floatPtr1+0 CPI <floatFracStart BCC fp_notlast
+											LDR floatPtr1 CPI '0' BNE fp_notlast
+												LDI 0 STR floatPtr1													; kill the trailing zero
+	fp_notlast:		LDR floatPtr1 STA floatLast													; & remember last digit
+								DEW floatPtr1 DEB floatcount BNE fp_rloop						; loop backwards if there are digits left
+									LDA floatAddup CPI 0 BEQ fp_output								; remains a final addup?
+										LDI '1' STR floatPtr1														; do a final roundup to "1"!!!
+	
+								; ***** PRINT "INTEGER.FRACTION" BUFFER *****
+	fp_output:		LDA floatSignA LSL BCC fp_printbuf									; check for negative
+									LDI '-' OUT JPS WaitUART
+	fp_printbuf:	LDI <floatIntStart STA floatPtr+0										; print out the buffer
+								LDI >floatIntStart STA floatPtr+1
+								LDI 8 STA floatcount																; BUFFER print the active integer digits
+	fp_loopbuf1:	LDR floatPtr CPI 0 BEQ fp_dontout
+									OUT JPS WaitUART
+	fp_dontout:		INW floatPtr DEB floatcount BNE fp_loopbuf1
+								LDR floatPtr CPI 0 BEQ fp_checkee										; gibt es Nachkommastellen?
+									LDI '.' OUT JPS WaitUART
+	fp_loopbuf2:	LDR floatPtr CPI 0 BEQ fp_checkee
+									OUT JPS WaitUART
+									INW floatPtr JPA fp_loopbuf2
+	
+								; CHECK FOR AND PRINT OUT A BASE-10 EXPONENT
+	fp_checkee:		LDA floatEE CPI 0 BEQ fp_nosci BPL fp_posee					; check if base-10 exponent is non-zero
+									NEG STS -2																				; store inverted exponent on the stack
+									LDI 'e' OUT JPS WaitUART LDI '-' OUT JPS WaitUART
+									JPA fp_printee
+	fp_posee:			STS -2																							; store exponent on the stack							
+								LDI 'e' OUT JPS WaitUART										
+	fp_printee:		JPS floatDecOut																			; print the exponent
+	fp_nosci:			RTS
+
+	fp_checkint: 	LDI 0														; check if integral part (32 bit) is non-zero
+							CPA floatInt+3 BNE ReturnTrue
+							CPA floatInt+2 BNE ReturnTrue
+							CPA floatInt+1 BNE ReturnTrue
+							CPA floatInt+0 BNE ReturnTrue
+								JPA ReturnFalse
+
+	fp_checkfrac: LDI 0														; check if fractional part (32 bit) is non-zero
+							CPA floatFrac+3 BNE ReturnTrue
+							CPA floatFrac+2 BNE ReturnTrue
+							CPA floatFrac+1 BNE ReturnTrue
+							CPA floatFrac+0 BNE ReturnTrue
+								JPA ReturnFalse
+
+	floatDecOut:		LDS 0 SBI 30 BCS Cursorprint3	; print out *(SP - 0) as unsigned signed decimal 0..39
+										ADI 10 BPL Cursorprint2
+											ADI 10 BPL Cursorprint1
+												ADI 10
+		CursorEiner:   			ADI '0' OUT NOP NOP NOP NOP NOP NOP NOP NOP NOP
+												RTS
+		Cursorprint3:		STS 0 LDI '3' 															; Einer sichern, "3" ausgeben
+		CursorZehner: 	OUT NOP NOP NOP NOP NOP NOP NOP NOP NOP
+										LDS 0 JPA CursorEiner                 			; Einer laden
+		Cursorprint2:		STS 0 LDI '2' JPA CursorZehner   						; "2" ausgeben
+		Cursorprint1:		STS 0 LDI '1' JPA CursorZehner   						; "1" ausgeben
+							
+
+
+; ***********************************************************************
+; Reads a positive value in decimal format starting from <lineptr> into A
+;	SP-2: 0: A is invalid, >0: A is valid
+; ***********************************************************************
+FloatRead:			CLB floatValid																			; devalidate parsed result
+								CLB floatSignA CLB floatSignB												; will from now on never change
+								CLW floatManA+0 CLW floatManA+2 CLB floatExpA				; clear floatex A
+								CLW floatManC+0 CLW floatManC+2 CLB floatExpC				; clear floatex C (will later be added to A)
+								
+								; PARSE AN INTEGER NUMBER
+	fr_nintdig:		LDR lineptr										  	; PARSE FOR THE NEXT DIGIT
+								SBI '0' BCC fr_nodigit
+								CPI 10 BCS fr_nodigit
+									STS -2													; put index on stack
+									JPS floatexSetB10
+									JPS floatexMul									; A = A * 10
+									JPS floatexSetB									; set B according to index on stack
+									JPS floatexAdd
+									INW lineptr											; advance to next char
+									INB floatValid
+									JPA	fr_nintdig																										
+	fr_nodigit:		LDA floatValid CPI 0 BNE fr_gotofrac
+									STS 0 RTS												; no integer part => return failure!
+	
+								; PARSE A FRACTIONAL NUMBER
+	fr_gotofrac:	LDR lineptr CPI '.' BNE fr_gotoee
+									LDA floatExpA STA floatExpC				; copy floatex A (integer part) to floatex C
+									LDA floatManA+3 STA floatManC+3 LDA floatManA+2 STA floatManC+2
+									LDA floatManA+1 STA floatManC+1 LDA floatManA+0 STA floatManC+0
+									CLB floatExpA CLW floatManA+0 CLW floatManA+2									; clear floatex A
+									CLB floatcountf										; count frac digits here
+		fr_floop:			INW lineptr												; advance to next digit (initially after '.')
+									LDR lineptr										  	; PARSE FOR THE NEXT DIGIT
+									SBI '0' BCC fr_nomoref
+									CPI 10 BCS fr_nomoref
+										INB floatcountf JPA fr_floop		; got a frac digit! => count it!
+	fr_nomoref:			LDA lineptr+0 STA floatPtr+0			; copy the pointer to next char after frac part
+									LDA lineptr+1 STA floatPtr+1	
+		fr_bloop:			DEB floatcountf BCC fr_gotoee			; track backwards
+										DEW floatPtr
+										LDR floatPtr SBI '0' STS -2 JPS floatexSetB
+										JPS floatexAdd
+										JPS floatexSetB10
+										JPS floatexDiv									; A = A / 10
+										JPA fr_bloop
+
+								; ADD INTEGER AND FRACTIONAL PARTS
+	fr_gotoee:		LDA floatExpC STA floatExpB					; copy saved integer part in floatex C to floatex B
+								LDA floatManC+3 STA floatManB+3 LDA floatManC+2 STA floatManB+2
+								LDA floatManC+1 STA floatManB+1 LDA floatManC+0 STA floatManB+0
+								JPS floatexAdd											; add stored integer part to fractional part in floatex A
+								
+								; PARSE A SCIENTIFIC NOTATION'S BASE-10 EXPONENT
+								LDR lineptr CPI 'e' BNE fr_finished
+									INW lineptr												; advance to first digit after 'e'
+									CLB floatValid										; devalidate input so far cause it is coming "e..."
+									CLB floatEEisNeg									; init EE sign to "positive"
+									LDR lineptr CPI '-' BNE fr_eedigit
+										INB floatEEisNeg
+										INW lineptr
+	fr_eedigit:			LDR lineptr
+									SBI '0' BCC fr_retstate						; return failure (no digit after e or e-)
+									CPI 10 BCS fr_retstate
+										STA floatEE INB floatValid INW lineptr			; store and validate digit
+										LDR lineptr
+										SBI '0' BCC fr_calcexp					; nore second digit => float is valid nonetheless
+										CPI 10 BCS fr_calcexp
+											LDA floatEE										; second digit found!!!
+											CPI 0 BEQ fr_zehn0
+												CPI 1 BEQ fr_zehn1
+													CPI 2 BEQ fr_zehn2
+														CPI 3 BEQ fr_zehn3
+															CLB floatValid INW lineptr JPA fr_retstate	; return failure (exponent too high)
+	fr_zehn0:				CLB floatEE JPA fr_addsecond
+	fr_zehn1:				LDI 10 STA floatEE JPA fr_addsecond
+	fr_zehn2:				LDI 20 STA floatEE JPA fr_addsecond
+	fr_zehn3:				LDI 30 STA floatEE
+	fr_addsecond:		LDR lineptr SBI '0' ADB floatEE INW lineptr					; add the second digit
+									
+									; APPLY THE PARSED EXPONENT TO SCALE FLOATEX A
+	fr_calcexp:			LDA floatEEisNeg CPI 0 BEQ fr_eloop_p
+	fr_eloop_n:			DEB floatEE BCC fr_finished									; exponent is negative
+										JPS floatexSetB10
+										JPS floatexDiv
+										JPA fr_eloop_n
+										JPA fr_finished		
+	fr_eloop_p:			DEB floatEE BCC fr_finished									; exponent is positive
+										JPS floatexSetB10
+										JPS floatexMul
+										JPA fr_eloop_p
+
+	fr_finished:	JPS floatexToUp									; gives best but not perfect results
+								JPS floatexCompose							; compose floatex A into float A
+	fr_retstate:		LDA floatValid								; return current status
+									STS 0 RTS
+
+	
+
+; *********************
+;
+; General I/O functions
+;
+; *********************
+WaitUART:    		NOP NOP NOP NOP NOP NOP NOP NOP
+                RTS
+
+; Reading in keyboard input into OS_Buffer until [ENTER] or end of buffer is hit
+ReadLine:  			JPS resetlptr
+  readchar:   	WIN                                 ; >= 10... waiting for input other than 0
+              	OUT                                 ; 4 output without sleeping, since the maximum receive rate is 115,2kHz anyway
+              	STR lineptr                      		; 10
+              	CPI 10 BEQ readexit                 ; 10 teste auf ENTER & BACKSPACE
+              	BCS nobackspace                     ; 6(5) ... backspace wäre "8"
+                	DEB lineptr                    		; 10 BACKSPACE war's
+                	CPI <OS_Buffer                    ; 5
+                	BCS readchar                      ; 6(5)
+                  	NOP NOP NOP NOP NOP NOP NOP     ; 112
+                  	LDI 32 OUT                      ; 8 backspace kompensieren (siehe auch nä. Zeile), JPS OS_WaitUART ist nicht nötig
+  nobackspace:  	INB lineptr                    		; 10 kompensiert auch den line pointer
+                	BPL readchar                      ; 6(5) maximale Anzahl von Zeichen wurde eingelesen
+  readexit:       	NOP NOP NOP NOP NOP NOP         ; 96
+	resetlptr:				LDI >OS_Buffer STA lineptr+1 		; 12 reset the line pointer
+                  	LDI <OS_Buffer STA lineptr+0 		; 12
+                  	RTS                             ; 14
+
+; **************************************************
+; ***** Schreibt einen nullterminierten String *****
+; **************************************************
+PrintText: 			LDS -1 STA floatPtr+0 LDS -2 STA floatPtr+1 ; get the data
+	printloop:  	LDR floatPtr CPI 0	    	            ; Print routine
+								BEQ printend          		            ; string zuende?
+            	  	OUT JPS WaitUART
+        		    	INW floatPtr         		            ; zeige auf das nächste Zeichen
+									JPA printloop
+  printend:	  	RTS
+
+calctext:				27, "[H", 27, "[J", "32-BIT FLOATING POINT CALCULATOR", 10, 10, 0
+errortext:			"ERROR", 0
+
+
+
+; ***************************************************
+;
+; Variables used by the floating point math functions
+;
+; ***************************************************
+
+								#end
+
+*=$fdff					floatStack:                       ; (empty) top position of the internal math stack
+
+*=$fe00                                           ; float library memory
+floatSP:				$0000                             ; stack pointer to next free space on the math stack (must be initialized)
+floatA:				  0, 0, 0, 0												; registers of the floating point library (only A is accessible)
+floatB:				  0, 0, 0, 0
+floatcount:		  0																	; multi-purpose counter
+floatcountf:		0																	; counting back fractional digits
+floatAddup:			0																	; for decimal rounding
+floatLast:      0																	; remembers the last char during rounding
+floatEE:				0																	; base-10 exponent
+floatEEisNeg:		0																	; stores base-10 exponent sign while parsing
+floatInt:				0, 0, 0, 0, 0											; 4 bytes plus one overflow byte
+floatFrac:			0, 0, 0, 0, 0
+floatIntStart:	"1234567"													; float output BUFFER
+floatIntEnd:		'8'
+floatFracStart:	"1234567890", 0
+floatPtr:				$0000															; workhorse pointer to output
+floatPtr1:			$0000															; FloatPrint: pointer to most significan output digit, floatexSetB: pointer
+floatValid:			0																	; indicates if parsing yielded a valid number																
+floatSignA:			0																	; FLOATEX A
+floatExpA:			0, 0															; two bytes for exponent mul/div overflow detection
+floatManA:			0, 0, 0, 0, 0, 0, 0, 0						; 64 bits for multiplication
+floatSignB:			0																	; FLOATEX B
+floatExpB:			0
+floatManB:			0, 0, 0, 0
+floatExpC:			0																	; FLOATEX C (temporary store for parsed integer result)
+floatManC:			0, 0, 0, 0
+floatStore:			0, 0, 0, 0, 0, 0, 0, 0						; 64 bits for storing results
+
+lineptr:				$0000															; current parsing position
+
+*=$ff10					OS_Buffer:			                  ; OS line input buffer
+
+								#begin
+
+*=$8000
