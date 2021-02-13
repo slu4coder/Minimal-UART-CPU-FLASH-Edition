@@ -5,8 +5,8 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 9 9
 Title "Control Logic"
-Date "2021-01-18"
-Rev "1.3"
+Date "2021-02-13"
+Rev "1.3.1"
 Comp ""
 Comment1 ""
 Comment2 "creativecommons.org/licenses/by-nc-sa/3.0/deed.en"
@@ -29,7 +29,7 @@ Text HLabel 5650 4150 1    50   Output ~ 0
 CO
 Text HLabel 5550 4100 1    50   Output ~ 0
 CI
-Text HLabel 8950 3300 2    50   Output ~ 0
+Text HLabel 8900 3300 2    50   Output ~ 0
 HI
 Text HLabel 9200 4150 1    50   Output ~ 0
 ~AI
@@ -451,7 +451,7 @@ F 3 "" H 4850 1300 50  0001 C CNN
 	1    4850 1300
 	-1   0    0    1   
 $EndComp
-Text HLabel 8950 2700 2    50   Output ~ 0
+Text HLabel 8900 2700 2    50   Output ~ 0
 ~HI
 $Comp
 L 74xx:74HC04 U1
@@ -561,7 +561,7 @@ Wire Wire Line
 	2050 1300 2050 950 
 Connection ~ 2050 1300
 Text Notes 1300 950  0    50   ~ 0
-~FI~ falls ~EO~
+~FI~ together with ~EO~
 $Comp
 L power:GND #PWR?
 U 1 1 601E3AC4
@@ -955,7 +955,7 @@ Text Notes 5950 3450 0    50   ~ 0
 Wire Wire Line
 	8700 1300 9250 1300
 Wire Wire Line
-	8950 2700 8800 2700
+	8900 2700 8800 2700
 Wire Wire Line
 	8800 2700 8800 850 
 Wire Wire Line
@@ -986,113 +986,65 @@ $EndComp
 Wire Wire Line
 	9000 4150 9000 3900
 Wire Wire Line
-	5850 4150 5850 3900
-$Comp
-L Device:C_Small C22
-U 1 1 6006F764
-P 6250 4150
-F 0 "C22" V 6200 4050 50  0000 C CNN
-F 1 "200pF" V 6150 4300 50  0000 C CNN
-F 2 "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm" H 6250 4150 50  0001 C CNN
-F 3 "~" H 6250 4150 50  0001 C CNN
-	1    6250 4150
-	0    1    1    0   
-$EndComp
-Wire Wire Line
-	5950 4150 6150 4150
+	5850 4150 5850 3850
 Connection ~ 5950 4150
-$Comp
-L Device:C_Small C21
-U 1 1 600733D2
-P 6250 3900
-F 0 "C21" V 6200 3800 50  0000 C CNN
-F 1 "200pF" V 6150 4050 50  0000 C CNN
-F 2 "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm" H 6250 3900 50  0001 C CNN
-F 3 "~" H 6250 3900 50  0001 C CNN
-	1    6250 3900
-	0    1    1    0   
-$EndComp
-Wire Wire Line
-	5850 3900 6150 3900
-Connection ~ 5850 3900
+Connection ~ 5850 3850
 $Comp
 L Device:C_Small C24
 U 1 1 60076B2F
-P 9350 3900
-F 0 "C24" V 9300 3800 50  0000 C CNN
-F 1 "200pF" V 9250 4050 50  0000 C CNN
-F 2 "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm" H 9350 3900 50  0001 C CNN
-F 3 "~" H 9350 3900 50  0001 C CNN
-	1    9350 3900
+P 9200 3900
+F 0 "C24" V 9150 3800 50  0000 C CNN
+F 1 "200pF" V 9100 4050 50  0000 C CNN
+F 2 "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm" H 9200 3900 50  0001 C CNN
+F 3 "~" H 9200 3900 50  0001 C CNN
+	1    9200 3900
 	0    1    1    0   
 $EndComp
 Wire Wire Line
-	9000 3900 9250 3900
+	9000 3900 9100 3900
 Connection ~ 9000 3900
 Wire Wire Line
 	9000 3900 9000 3800
 $Comp
 L Device:C_Small C23
 U 1 1 60086257
-P 9350 3600
-F 0 "C23" V 9300 3500 50  0000 C CNN
-F 1 "200pF" V 9250 3750 50  0000 C CNN
-F 2 "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm" H 9350 3600 50  0001 C CNN
-F 3 "~" H 9350 3600 50  0001 C CNN
-	1    9350 3600
+P 9200 3600
+F 0 "C23" V 9150 3500 50  0000 C CNN
+F 1 "200pF" V 9100 3750 50  0000 C CNN
+F 2 "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm" H 9200 3600 50  0001 C CNN
+F 3 "~" H 9200 3600 50  0001 C CNN
+	1    9200 3600
 	0    1    1    0   
 $EndComp
 Wire Wire Line
-	8800 3600 9250 3600
+	8800 3600 9100 3600
 Connection ~ 8800 3600
 Wire Wire Line
 	8800 3600 8800 4150
 $Comp
-L power:GND #PWR079
-U 1 1 600A6299
-P 6350 4150
-F 0 "#PWR079" H 6350 3900 50  0001 C CNN
-F 1 "GND" V 6300 4050 50  0000 R CNN
-F 2 "" H 6350 4150 50  0001 C CNN
-F 3 "" H 6350 4150 50  0001 C CNN
-	1    6350 4150
-	0    -1   -1   0   
-$EndComp
-$Comp
-L power:GND #PWR07
-U 1 1 600ACCE3
-P 6350 3900
-F 0 "#PWR07" H 6350 3650 50  0001 C CNN
-F 1 "GND" V 6300 3800 50  0000 R CNN
-F 2 "" H 6350 3900 50  0001 C CNN
-F 3 "" H 6350 3900 50  0001 C CNN
-	1    6350 3900
-	0    -1   -1   0   
-$EndComp
-$Comp
 L power:GND #PWR087
 U 1 1 600ACF3B
-P 9450 3600
-F 0 "#PWR087" H 9450 3350 50  0001 C CNN
-F 1 "GND" V 9400 3500 50  0000 R CNN
-F 2 "" H 9450 3600 50  0001 C CNN
-F 3 "" H 9450 3600 50  0001 C CNN
-	1    9450 3600
+P 9300 3600
+F 0 "#PWR087" H 9300 3350 50  0001 C CNN
+F 1 "GND" V 9250 3500 50  0000 R CNN
+F 2 "" H 9300 3600 50  0001 C CNN
+F 3 "" H 9300 3600 50  0001 C CNN
+	1    9300 3600
 	0    -1   -1   0   
 $EndComp
 $Comp
 L power:GND #PWR094
 U 1 1 600AD391
-P 9450 3900
-F 0 "#PWR094" H 9450 3650 50  0001 C CNN
-F 1 "GND" V 9400 3800 50  0000 R CNN
-F 2 "" H 9450 3900 50  0001 C CNN
-F 3 "" H 9450 3900 50  0001 C CNN
-	1    9450 3900
+P 9300 3900
+F 0 "#PWR094" H 9300 3650 50  0001 C CNN
+F 1 "GND" V 9250 3800 50  0000 R CNN
+F 2 "" H 9300 3900 50  0001 C CNN
+F 3 "" H 9300 3900 50  0001 C CNN
+	1    9300 3900
 	0    -1   -1   0   
 $EndComp
 Wire Wire Line
-	8950 3300 8800 3300
+	8900 3300 8800 3300
 Wire Wire Line
 	8800 3300 8800 3600
 Connection ~ 8800 3300
@@ -1106,7 +1058,7 @@ Wire Wire Line
 Wire Wire Line
 	6850 3000 5850 3000
 Wire Wire Line
-	5850 3000 5850 3900
+	5850 3000 5850 3850
 Connection ~ 6850 3000
 Wire Wire Line
 	6850 3000 6850 3100
@@ -1145,20 +1097,76 @@ F 3 "" H 1950 7450 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Connection ~ 1950 7450
-Text HLabel 5650 3700 0    50   Output ~ 0
+Text HLabel 5650 3750 0    50   Output ~ 0
 ME
 Wire Wire Line
-	5750 1550 5750 3700
-Connection ~ 5750 3700
+	5750 1550 5750 3750
+Connection ~ 5750 3750
 Wire Wire Line
-	5650 3700 5750 3700
-Text HLabel 5650 3800 0    50   Output ~ 0
+	5650 3750 5750 3750
+Text HLabel 5650 3850 0    50   Output ~ 0
 CE
 Wire Wire Line
-	5750 3700 5750 3800
+	5750 3750 5750 3850
 Wire Wire Line
-	5750 3800 5750 4150
-Connection ~ 5750 3800
+	5750 3850 5750 4150
+Connection ~ 5750 3850
 Wire Wire Line
-	5750 3800 5650 3800
+	5750 3850 5650 3850
+Wire Wire Line
+	5850 3850 6050 3850
+$Comp
+L power:GND #PWR07
+U 1 1 600ACCE3
+P 6250 3850
+F 0 "#PWR07" H 6250 3600 50  0001 C CNN
+F 1 "GND" V 6200 3750 50  0000 R CNN
+F 2 "" H 6250 3850 50  0001 C CNN
+F 3 "" H 6250 3850 50  0001 C CNN
+	1    6250 3850
+	0    -1   -1   0   
+$EndComp
+$Comp
+L Device:C_Small C21
+U 1 1 600733D2
+P 6150 3850
+F 0 "C21" V 6100 3750 50  0000 C CNN
+F 1 "200pF" V 6050 4000 50  0000 C CNN
+F 2 "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm" H 6150 3850 50  0001 C CNN
+F 3 "~" H 6150 3850 50  0001 C CNN
+	1    6150 3850
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	5950 4150 6050 4150
+$Comp
+L power:GND #PWR079
+U 1 1 600A6299
+P 6250 4150
+F 0 "#PWR079" H 6250 3900 50  0001 C CNN
+F 1 "GND" V 6200 4050 50  0000 R CNN
+F 2 "" H 6250 4150 50  0001 C CNN
+F 3 "" H 6250 4150 50  0001 C CNN
+	1    6250 4150
+	0    -1   -1   0   
+$EndComp
+$Comp
+L Device:C_Small C22
+U 1 1 6006F764
+P 6150 4150
+F 0 "C22" V 6100 4050 50  0000 C CNN
+F 1 "200pF" V 6050 4300 50  0000 C CNN
+F 2 "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P2.50mm" H 6150 4150 50  0001 C CNN
+F 3 "~" H 6150 4150 50  0001 C CNN
+	1    6150 4150
+	0    1    1    0   
+$EndComp
+Text Notes 6100 4650 0    50   ~ 0
+The caps suppress false\ntriggering of level-\ntriggered control signals\ndue to switching spikes.
+Text Notes 9400 700  0    50   ~ 0
+Instruction Step Counter
+Text Notes 6800 700  0    50   ~ 0
+Instruction Register
+Text Notes 2450 700  0    50   ~ 0
+Flags Register
 $EndSCHEMATC

@@ -5,8 +5,8 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 3 9
 Title "Arithmetic and Logic Unit"
-Date "2021-01-18"
-Rev "1.3"
+Date "2021-02-13"
+Rev "1.3.1"
 Comp ""
 Comment1 ""
 Comment2 "creativecommons.org/licenses/by-nc-sa/3.0/deed.en"
@@ -45,25 +45,25 @@ Text HLabel 3050 3650 1    50   Input ~ 0
 A6
 Text HLabel 2950 3650 1    50   Input ~ 0
 A7
-Text HLabel 5450 3100 2    50   Input ~ 0
+Text HLabel 1850 1300 0    50   Input ~ 0
 B0
-Text HLabel 5450 2750 2    50   Input ~ 0
+Text HLabel 1850 1650 0    50   Input ~ 0
 B1
-Text HLabel 5450 2400 2    50   Input ~ 0
+Text HLabel 1850 2000 0    50   Input ~ 0
 B2
-Text HLabel 5450 2050 2    50   Input ~ 0
+Text HLabel 1850 2350 0    50   Input ~ 0
 B3
-Text HLabel 5450 1700 2    50   Input ~ 0
+Text HLabel 1850 2700 0    50   Input ~ 0
 B4
-Text HLabel 5450 1350 2    50   Input ~ 0
+Text HLabel 1850 3050 0    50   Input ~ 0
 B5
-Text HLabel 5450 1000 2    50   Input ~ 0
+Text HLabel 1850 3400 0    50   Input ~ 0
 B6
-Text HLabel 5450 650  2    50   Input ~ 0
+Text HLabel 1850 3750 0    50   Input ~ 0
 B7
 Text HLabel 4550 7200 3    50   Input ~ 0
 ~EO
-Text HLabel 5800 3300 2    50   Input ~ 0
+Text HLabel 1500 1100 0    50   Input ~ 0
 ES
 Text HLabel 5550 3650 1    50   Input ~ 0
 EC
@@ -193,125 +193,119 @@ Wire Wire Line
 $Comp
 L 74xx:74HC86 U12
 U 1 1 5F82176D
-P 5150 750
-F 0 "U12" H 5150 700 50  0000 C CNN
-F 1 "74HC86" H 5200 800 50  0000 C CNN
-F 2 "Package_DIP:DIP-14_W7.62mm" H 5150 750 50  0001 C CNN
-F 3 "http://www.ti.com/lit/gpn/sn74HC86" H 5150 750 50  0001 C CNN
-	1    5150 750 
-	-1   0    0    1   
+P 2150 3650
+F 0 "U12" H 2150 3600 50  0000 C CNN
+F 1 "74HC86" H 2200 3700 50  0000 C CNN
+F 2 "Package_DIP:DIP-14_W7.62mm" H 2150 3650 50  0001 C CNN
+F 3 "http://www.ti.com/lit/gpn/sn74HC86" H 2150 3650 50  0001 C CNN
+	1    2150 3650
+	1    0    0    -1  
 $EndComp
 $Comp
 L 74xx:74HC86 U12
 U 2 1 5F825276
-P 5150 1100
-F 0 "U12" H 5150 1050 50  0000 C CNN
-F 1 "74HC86" H 5200 1150 50  0000 C CNN
-F 2 "Package_DIP:DIP-14_W7.62mm" H 5150 1100 50  0001 C CNN
-F 3 "http://www.ti.com/lit/gpn/sn74HC86" H 5150 1100 50  0001 C CNN
-	2    5150 1100
-	-1   0    0    1   
+P 2150 3300
+F 0 "U12" H 2150 3250 50  0000 C CNN
+F 1 "74HC86" H 2200 3350 50  0000 C CNN
+F 2 "Package_DIP:DIP-14_W7.62mm" H 2150 3300 50  0001 C CNN
+F 3 "http://www.ti.com/lit/gpn/sn74HC86" H 2150 3300 50  0001 C CNN
+	2    2150 3300
+	1    0    0    -1  
 $EndComp
 $Comp
 L 74xx:74HC86 U12
 U 3 1 5F8270A9
-P 5150 1450
-F 0 "U12" H 5150 1400 50  0000 C CNN
-F 1 "74HC86" H 5200 1500 50  0000 C CNN
-F 2 "Package_DIP:DIP-14_W7.62mm" H 5150 1450 50  0001 C CNN
-F 3 "http://www.ti.com/lit/gpn/sn74HC86" H 5150 1450 50  0001 C CNN
-	3    5150 1450
-	-1   0    0    1   
+P 2150 2950
+F 0 "U12" H 2150 2900 50  0000 C CNN
+F 1 "74HC86" H 2200 3000 50  0000 C CNN
+F 2 "Package_DIP:DIP-14_W7.62mm" H 2150 2950 50  0001 C CNN
+F 3 "http://www.ti.com/lit/gpn/sn74HC86" H 2150 2950 50  0001 C CNN
+	3    2150 2950
+	1    0    0    -1  
 $EndComp
 $Comp
 L 74xx:74HC86 U12
 U 4 1 5F828D45
-P 5150 1800
-F 0 "U12" H 5150 1750 50  0000 C CNN
-F 1 "74HC86" H 5150 1850 50  0000 C CNN
-F 2 "Package_DIP:DIP-14_W7.62mm" H 5150 1800 50  0001 C CNN
-F 3 "http://www.ti.com/lit/gpn/sn74HC86" H 5150 1800 50  0001 C CNN
-	4    5150 1800
-	-1   0    0    1   
+P 2150 2600
+F 0 "U12" H 2150 2550 50  0000 C CNN
+F 1 "74HC86" H 2150 2650 50  0000 C CNN
+F 2 "Package_DIP:DIP-14_W7.62mm" H 2150 2600 50  0001 C CNN
+F 3 "http://www.ti.com/lit/gpn/sn74HC86" H 2150 2600 50  0001 C CNN
+	4    2150 2600
+	1    0    0    -1  
 $EndComp
 $Comp
 L 74xx:74HC86 U16
 U 1 1 5F847955
-P 5150 2150
-F 0 "U16" H 5150 2100 50  0000 C CNN
-F 1 "74HC86" H 5150 2200 50  0000 C CNN
-F 2 "Package_DIP:DIP-14_W7.62mm" H 5150 2150 50  0001 C CNN
-F 3 "http://www.ti.com/lit/gpn/sn74HC86" H 5150 2150 50  0001 C CNN
-	1    5150 2150
-	-1   0    0    1   
+P 2150 2250
+F 0 "U16" H 2150 2200 50  0000 C CNN
+F 1 "74HC86" H 2150 2300 50  0000 C CNN
+F 2 "Package_DIP:DIP-14_W7.62mm" H 2150 2250 50  0001 C CNN
+F 3 "http://www.ti.com/lit/gpn/sn74HC86" H 2150 2250 50  0001 C CNN
+	1    2150 2250
+	1    0    0    -1  
 $EndComp
 $Comp
 L 74xx:74HC86 U16
 U 2 1 5F848A59
-P 5150 2500
-F 0 "U16" H 5150 2450 50  0000 C CNN
-F 1 "74HC86" H 5150 2550 50  0000 C CNN
-F 2 "Package_DIP:DIP-14_W7.62mm" H 5150 2500 50  0001 C CNN
-F 3 "http://www.ti.com/lit/gpn/sn74HC86" H 5150 2500 50  0001 C CNN
-	2    5150 2500
-	-1   0    0    1   
+P 2150 1900
+F 0 "U16" H 2150 1850 50  0000 C CNN
+F 1 "74HC86" H 2150 1950 50  0000 C CNN
+F 2 "Package_DIP:DIP-14_W7.62mm" H 2150 1900 50  0001 C CNN
+F 3 "http://www.ti.com/lit/gpn/sn74HC86" H 2150 1900 50  0001 C CNN
+	2    2150 1900
+	1    0    0    -1  
 $EndComp
 $Comp
 L 74xx:74HC86 U16
 U 3 1 5F849CE8
-P 5150 2850
-F 0 "U16" H 5150 2800 50  0000 C CNN
-F 1 "74HC86" H 5150 2900 50  0000 C CNN
-F 2 "Package_DIP:DIP-14_W7.62mm" H 5150 2850 50  0001 C CNN
-F 3 "http://www.ti.com/lit/gpn/sn74HC86" H 5150 2850 50  0001 C CNN
-	3    5150 2850
-	-1   0    0    1   
+P 2150 1550
+F 0 "U16" H 2150 1500 50  0000 C CNN
+F 1 "74HC86" H 2150 1600 50  0000 C CNN
+F 2 "Package_DIP:DIP-14_W7.62mm" H 2150 1550 50  0001 C CNN
+F 3 "http://www.ti.com/lit/gpn/sn74HC86" H 2150 1550 50  0001 C CNN
+	3    2150 1550
+	1    0    0    -1  
 $EndComp
 $Comp
 L 74xx:74HC86 U16
 U 4 1 5F84AD01
-P 5150 3200
-F 0 "U16" H 5150 3150 50  0000 C CNN
-F 1 "74HC86" H 5150 3250 50  0000 C CNN
-F 2 "Package_DIP:DIP-14_W7.62mm" H 5150 3200 50  0001 C CNN
-F 3 "http://www.ti.com/lit/gpn/sn74HC86" H 5150 3200 50  0001 C CNN
-	4    5150 3200
-	-1   0    0    1   
+P 2150 1200
+F 0 "U16" H 2150 1150 50  0000 C CNN
+F 1 "74HC86" H 2150 1250 50  0000 C CNN
+F 2 "Package_DIP:DIP-14_W7.62mm" H 2150 1200 50  0001 C CNN
+F 3 "http://www.ti.com/lit/gpn/sn74HC86" H 2150 1200 50  0001 C CNN
+	4    2150 1200
+	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	4750 2850 4850 2850
+	1850 3550 1650 3550
 Wire Wire Line
-	4850 2500 4650 2500
+	1650 3200 1850 3200
 Wire Wire Line
-	4550 2150 4850 2150
+	1650 3200 1650 2850
 Wire Wire Line
-	5450 850  5650 850 
+	1650 2850 1850 2850
+Connection ~ 1650 3200
 Wire Wire Line
-	5650 1200 5450 1200
+	1650 2850 1650 2500
 Wire Wire Line
-	5650 1200 5650 1550
+	1650 2500 1850 2500
+Connection ~ 1650 2850
 Wire Wire Line
-	5650 1550 5450 1550
-Connection ~ 5650 1200
+	1850 2150 1650 2150
 Wire Wire Line
-	5650 1550 5650 1900
+	1650 2150 1650 1800
 Wire Wire Line
-	5650 1900 5450 1900
-Connection ~ 5650 1550
+	1650 1800 1850 1800
 Wire Wire Line
-	5450 2250 5650 2250
+	1650 1800 1650 1450
 Wire Wire Line
-	5650 2250 5650 2600
+	1650 1450 1850 1450
+Connection ~ 1650 1800
 Wire Wire Line
-	5650 2600 5450 2600
-Wire Wire Line
-	5650 2600 5650 2950
-Wire Wire Line
-	5650 2950 5450 2950
-Connection ~ 5650 2600
-Wire Wire Line
-	5650 3300 5450 3300
-Connection ~ 5650 2950
+	1650 1100 1850 1100
+Connection ~ 1650 1450
 $Comp
 L 74xx:74HC02 U18
 U 2 1 5F89AC24
@@ -446,7 +440,7 @@ F 3 "http://www.ti.com/lit/gpn/sn74LS08" H 8300 5350 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	5650 2950 5650 3300
+	1650 1450 1650 1100
 $Comp
 L 74xx:74HC86 U12
 U 5 1 5F5229C8
@@ -580,26 +574,10 @@ F 3 "" H 1750 6500 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	4550 2150 4550 3650
+	1650 3550 1650 3200
 Wire Wire Line
-	4650 2500 4650 3650
-Wire Wire Line
-	4750 2850 4750 3650
-Wire Wire Line
-	4850 3200 4850 3650
-Wire Wire Line
-	5650 850  5650 1200
-Wire Wire Line
-	2750 1800 2750 3650
-Wire Wire Line
-	2650 1450 2650 3650
-Wire Wire Line
-	2550 1100 2550 3650
-Wire Wire Line
-	2450 750  2450 3650
-Wire Wire Line
-	5650 1900 5650 2250
-Connection ~ 5650 2250
+	1650 2500 1650 2150
+Connection ~ 1650 2150
 Wire Wire Line
 	6800 6050 4850 6050
 Wire Wire Line
@@ -630,18 +608,38 @@ Wire Wire Line
 	5550 4650 6800 4650
 Wire Wire Line
 	5450 4850 6800 4850
-Text Notes 2150 7600 0    50   ~ 0
-AND used in RX
-Connection ~ 5650 1900
+Text Notes 7550 4650 0    50   ~ 0
+Left-over AND used in UART receier.
+Connection ~ 1650 2500
 Wire Wire Line
-	5650 3300 5800 3300
-Connection ~ 5650 3300
+	1650 1100 1500 1100
+Connection ~ 1650 1100
 Wire Wire Line
-	2450 750  4850 750 
+	2550 3650 2550 3300
 Wire Wire Line
-	2550 1100 4850 1100
+	2550 3300 2450 3300
 Wire Wire Line
-	2650 1450 4850 1450
+	2650 3650 2650 2950
 Wire Wire Line
-	2750 1800 4850 1800
+	2650 2950 2450 2950
+Wire Wire Line
+	2750 3650 2750 2600
+Wire Wire Line
+	2750 2600 2450 2600
+Wire Wire Line
+	2450 2250 4550 2250
+Wire Wire Line
+	4550 2250 4550 3650
+Wire Wire Line
+	2450 1900 4650 1900
+Wire Wire Line
+	4650 1900 4650 3650
+Wire Wire Line
+	2450 1550 4750 1550
+Wire Wire Line
+	4750 1550 4750 3650
+Wire Wire Line
+	2450 1200 4850 1200
+Wire Wire Line
+	4850 1200 4850 3650
 $EndSCHEMATC

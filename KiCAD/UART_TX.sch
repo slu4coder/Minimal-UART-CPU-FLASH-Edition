@@ -5,8 +5,8 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 5 9
 Title ""
-Date "2021-01-18"
-Rev "1.3"
+Date "2021-02-13"
+Rev "1.3.1"
 Comp ""
 Comment1 ""
 Comment2 "creativecommons.org/licenses/by-nc-sa/3.0/deed.en"
@@ -41,7 +41,7 @@ F 3 "http://www.ti.com/lit/gpn/sn74LS161" H 3100 3700 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 Text GLabel 2800 3200 1    50   Input ~ 0
-CLOCK
+1.8432MHz
 $Comp
 L power:+5V #PWR0168
 U 1 1 5F249C63
@@ -234,18 +234,18 @@ Wire Wire Line
 	8050 2850 8050 3200
 Connection ~ 5250 2850
 Wire Wire Line
-	5450 3200 5450 2750
+	5450 3200 5450 2650
 Wire Wire Line
-	8250 2750 8250 3200
+	8250 2650 8250 3200
 Text HLabel 6450 4200 3    50   Output ~ 0
 TX
 Wire Wire Line
-	5450 2750 2600 2750
+	5450 2650 2600 2650
 Wire Wire Line
-	2600 2750 2600 3200
+	2600 2650 2600 3200
 Wire Wire Line
-	5450 2750 8250 2750
-Connection ~ 5450 2750
+	5450 2650 8250 2650
+Connection ~ 5450 2650
 $Comp
 L power:+5V #PWR0103
 U 1 1 60A233B9
@@ -341,23 +341,25 @@ $EndComp
 $Comp
 L 74xx:74HC00 U?
 U 4 1 601732B4
-P 2300 2750
+P 2300 2650
 AR Path="/5EC57456/601732B4" Ref="U?"  Part="4" 
 AR Path="/5F645851/601732B4" Ref="U?"  Part="1" 
 AR Path="/5EC57429/601732B4" Ref="U?"  Part="4" 
 AR Path="/5F64487D/601732B4" Ref="U44"  Part="4" 
-F 0 "U44" H 2300 2700 50  0000 C CNN
-F 1 "74HC00" H 2300 2800 50  0000 C CNN
-F 2 "Package_DIP:DIP-14_W7.62mm" H 2300 2750 50  0001 C CNN
-F 3 "http://www.ti.com/lit/gpn/sn74LS32" H 2300 2750 50  0001 C CNN
-	4    2300 2750
+F 0 "U44" H 2300 2600 50  0000 C CNN
+F 1 "74HC00" H 2300 2700 50  0000 C CNN
+F 2 "Package_DIP:DIP-14_W7.62mm" H 2300 2650 50  0001 C CNN
+F 3 "http://www.ti.com/lit/gpn/sn74LS32" H 2300 2650 50  0001 C CNN
+	4    2300 2650
 	1    0    0    -1  
 $EndComp
-Text Notes 1850 3050 0    50   ~ 0
-NAND from MAR
-Connection ~ 2600 2750
-Text HLabel 2000 2650 0    50   Input ~ 0
+Text Notes 1700 3050 0    50   ~ 0
+Left-over NAND\nfrom MAR
+Connection ~ 2600 2650
+Text HLabel 2000 2550 0    50   Input ~ 0
 TI
-Text GLabel 2000 2850 0    50   Input ~ 0
+Text GLabel 2000 2750 0    50   Input ~ 0
 CLOCK
+Text Notes 2150 2350 0    50   ~ 0
+Transfers bus data only\nduring second clockphase.
 $EndSCHEMATC

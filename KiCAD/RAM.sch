@@ -5,8 +5,8 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 8 9
 Title "RAM, ROM and MAR"
-Date "2021-01-18"
-Rev "1.3"
+Date "2021-02-13"
+Rev "1.3.1"
 Comp ""
 Comment1 ""
 Comment2 "creativecommons.org/licenses/by-nc-sa/3.0/deed.en"
@@ -834,4 +834,8 @@ Wire Wire Line
 	1250 1100 1250 1200
 Wire Wire Line
 	1150 800  1250 800 
+Text Notes 9050 1250 0    50   ~ 0
+A separate reset of the MAR is not needed.\nDuring the time RESET is pressed,\nthe clock runs with SC=0 and PC=0.\nThis ensures that with CO|MI MAL=0.
+Text Notes 4650 4650 0    50   ~ 0
+Writing only during\nsecond clockphase.
 $EndSCHEMATC
