@@ -1,9 +1,8 @@
 ; MinOS 2.0 for the 8-Bit Minimal UART CPU (FLASH Edition)
 ; written by Carsten Herting - last update Feb 18th 2021
-; USAGE: Open command shell, type asm rom.txt , copy & paste
-; date via terminal to $e000-$efff, load prom, type 8000 r.
-; Replace # with ;# except for the last '#end' to make this
-; usable in the emulator.
+; USAGE for In-situ programming of OS: Open command shell,
+; type asm rom.txt , copy & paste date via terminal to
+; $e000-$efff, load prom, type 8000 r, enjoy new OS.
 
 ; ******************************
 ; Memory Monitor core aka WOZMON
