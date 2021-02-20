@@ -1,5 +1,5 @@
 # Final 'Minimal UART Computer' (FLASH Edition) 2021
-I built my own Computer from scratch - using nothing but TTL chips, because, well, why not? I wanted a CPU that is easy to understand, fun to build and powerful enough to allow for programming educational stuff and little games on it. Ah, and by the way - it should be as simple as possible - sort of the "Simplest Usable Personal Computer Ever". Well, in case you're interested, this repo aims to provide you with everything you need to follow my one-and-a-half-year journey down this rabbit hole. This is the latest FLASH Edition of my Minimal UART Computer design. Besides running TETRIS this little DIY CPU is now capable of parsing arbitrary mathmatical expressions and performing floating point calculations in single (32-bit) precision.
+I built my own Computer from scratch - using nothing but TTL chips, because, well, why not? I wanted a CPU that is easy to understand, fun to build and powerful enough to allow for programming educational stuff and little games on it. Ah, and by the way - it should be as simple as possible - sort of the "Simplest Usable Personal Computer Ever". Well, in case you're interested, this repo aims to provide you with everything you need to follow my one-and-a-half-year journey down this rabbit hole. This is the latest FLASH Edition of my Minimal UART Computer design. Besides running TETRIS, this little DIY CPU is now capable of parsing arbitrary mathmatical expressions and performing floating point calculations in single (32-bit) precision. And it comes with a SSD file system, too! That's right, it uses it's own FLASH IC as SSD memory.
 
 WHAT YOU GET:
 
@@ -30,9 +30,9 @@ TECHNICAL SPECIFICATION:
   
   ● 1,8432MHz clock with 0.25Mips (Altair 8800: 0.29Mips, Apple 1: 0.43Mips)
   
-  ● 32KB RAM / 32KB FLASH ROM (OS, memory monitor, disassembler, FLASH access and other tools)
+  ● 32KB RAM / 32KB FLASH ROM (OS, memory monitor, disassembler, tools)
   
-  ● Possibility to write data to it's FLASH memeory while running (sort of an SSD drive :-)
+  ● SSD file system (commands LOAD, SAVE, DIR, DELETE, FORMAT as you'd expect)
   
   ● UART interface (115.2kbps) for terminal display, keyboard input and file I/O
   
