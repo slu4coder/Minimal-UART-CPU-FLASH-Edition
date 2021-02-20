@@ -1,4 +1,4 @@
-# Final 'Minimal UART Computer' (FLASH Edition) 2021
+# 'Minimal UART Computer' (FLASH Edition) 2021 - Now with SSD for FREE!
 I built my own Computer from scratch - using nothing but TTL chips, because, well, why not? I wanted a CPU that is easy to understand, fun to build and powerful enough to allow for programming educational stuff and little games on it. Ah, and by the way - it should be as simple as possible - sort of the "Simplest Usable Personal Computer Ever". Well, in case you're interested, this repo aims to provide you with everything you need to follow my one-and-a-half-year journey down this rabbit hole. This is the latest FLASH Edition of my Minimal UART Computer design. Besides running TETRIS, this little DIY CPU is now capable of parsing arbitrary mathmatical expressions and performing floating point calculations in single (32-bit) precision. And it comes with a SSD file system, too! That's right, it uses it's own FLASH IC as SSD memory.
 
 WHAT YOU GET:
