@@ -431,38 +431,43 @@ floatexSetB:	LDI <fxb_table STA floatPtr1+0								; Sets floatex B to 0...9 acc
 ; Prints out the floating point number A in rounded decimal or scientific format
 ;
 ; ******************************************************************************
-FloatPrint:			CLB floatEE CLB floatSignB											; clear the output buffer
-								LDI <floatIntStart STA floatPtr+0
+FloatPrint:			CLB floatEE CLB floatSignB											; init variables
+								
+								LDI <floatIntStart STA floatPtr+0								; clear the output ASCII buffer
 								LDI >floatIntStart STA floatPtr+1
 								LDI 19 STA floatcount														; total length of output buffer including trailing zero
 	fp_outclear:		LDI 0 STR floatPtr INW floatPtr								; fill the output buffer with 0
 									DEB floatcount BNE fp_outclear
 
-								JPS floatExtractA																; extract floatA
-								LDA floatExpA CPI 0 BNE fp_notzero
-									LDI '0' OUT JPS WaitUART RTS														; case A = 0
+								JPS floatExtractA																; extract floatA to be printed
+								
+								LDA floatExpA CPI 0 BNE fp_notzero							; check for simple A = 0 case
+									LDI '0' OUT JPS WaitUART RTS
 									
-								; ***** CHECK FOR SCIENTIFIC NOTATION *****
-	fp_notzero:		LDA floatExpA CPI $92 BCC fp_notbig BNE fp_while1					; check for >1000000 (scientific notation)
+								; ***** CHECK IF SCIENTIFIC NOTATION IS NEEDED *****
+	fp_notzero:		LDA floatExpA CPI $92 BCC fp_notbig BNE fp_while1					; check for A > 1000000 (scientific notation needed)
 								LDA floatManA+3 CPI $f4 BCC fp_notbig BNE fp_while1
 								LDA floatManA+2 CPI $24 BCC fp_notbig BNE fp_while1
 								LDA floatManA+1 CPI $00 BEQ fp_notbig
+	
 									; case A > 1000000 "big" => divide by 10 until result is < 10
 	fp_while1:			JPS floatexSetB10
 									JPS floatexDiv
 									INB floatEE
-									LDI 130 CPA floatExpA BCC fp_while1	BNE fp_notsmall			; check for < 10 (scientific notation)
+									LDI 130 CPA floatExpA BCC fp_while1	BNE fp_notsmall			; until A < 10
 									LDI $a0 CPA floatManA+3 BCC fp_while1 BEQ fp_while1
 										JPA fp_notsmall
-	fp_notbig:		LDA floatExpA CPI $6b BCS fp_notsmall BNE fp_while2 			; check for < 0.000001 (scientific notation)
+	
+	fp_notbig:		LDA floatExpA CPI $6b BCS fp_notsmall BNE fp_while2 			; check for A < 0.000001 (scientific notation)
 								LDA floatManA+3 CPI $86 BCS fp_notsmall BNE fp_while2
 								LDA floatManA+2 CPI $37 BCS fp_notsmall BNE fp_while2
 								LDA floatManA+1 CPI $bd BCS fp_notsmall
+	
 									; case A < 0.000001 "small"
 	fp_while2:			JPS floatexSetB10
 									JPS floatexMul
 									DEB floatEE
-									LDA floatExpA CPI $7f BCC fp_while2											; check for < 0.000001 (scientific notation)
+									LDA floatExpA CPI 127 BCC fp_while2											; until A >= 1
 									LDA floatManA+3 CPI $80 BCC fp_while2
 								
 								; ***** GENERATE INTEGRAL AND FRACTIONAL PART *****
@@ -508,8 +513,8 @@ FloatPrint:			CLB floatEE CLB floatSignB											; clear the output buffer
 								LDI >floatIntEnd STA floatPtr+1
 								JPS fp_checkint LDS -2 CPI 0 BNE fp_intloop				; check if int part is != 0
 									LDI '0' STR floatPtr														; integer part is zero => ouput a "0"
-									JPA fp_printfrac	
-	fp_intloop:		CLB	floatInt+3																		; muss erfolgen (= clear remainder)
+									JPA fp_printfrac
+	fp_intloop:		CLB	floatInt+3																		; clear the remainder!
 								LDI 24 STA floatcount
 								CLC
 	fp_doloop:		LDA floatInt+0 ROL STA floatInt+0		; shift int part to the left
@@ -540,16 +545,12 @@ FloatPrint:			CLB floatEE CLB floatSignB											; clear the output buffer
 									LDA floatFrac+3 ROL STA floatFrac+3 STA floatInt+3
 									LDA floatFrac+4 ROL STA floatFrac+4 STA floatInt+4
 									LDA floatInt+0 LSL STA floatInt+0										; floatInt = floatfrac << 3
-									LDA floatInt+1 ROL STA floatInt+1
-									LDA floatInt+2 ROL STA floatInt+2
-									LDA floatInt+3 ROL STA floatInt+3
-									LDA floatInt+4 ROL STA floatInt+4
+									LDA floatInt+1 ROL STA floatInt+1 LDA floatInt+2 ROL STA floatInt+2
+									LDA floatInt+3 ROL STA floatInt+3 LDA floatInt+4 ROL STA floatInt+4
 									LDA floatInt+0 LSL STA floatInt+0
-									LDA floatInt+1 ROL STA floatInt+1
-									LDA floatInt+2 ROL STA floatInt+2
-									LDA floatInt+3 ROL STA floatInt+3
-									LDA floatInt+4 ROL STA floatInt+4
-									LDA floatInt+0 ADW floatFrac+0 LDI 0 ACW floatFrac+2 LDI 0 ACB floatFrac+4				; floatFrac += floatInt (now times 10)
+									LDA floatInt+1 ROL STA floatInt+1 LDA floatInt+2 ROL STA floatInt+2
+									LDA floatInt+3 ROL STA floatInt+3 LDA floatInt+4 ROL STA floatInt+4
+									LDA floatInt+0 ADW floatFrac+0 LDI 0 ACW floatFrac+2 LDI 0 ACB floatFrac+4	; floatFrac += floatInt (now times 10)
 									LDA floatInt+1 ADB floatFrac+1 LDI 0 ACW floatFrac+2 LDI 0 ACB floatFrac+4
 									LDA floatInt+2 ADW floatFrac+2 LDI 0 ACB floatFrac+4
 									LDA floatInt+3 ADW floatFrac+3											; "W" also use overflow byte here
@@ -580,7 +581,7 @@ FloatPrint:			CLB floatEE CLB floatSignB											; clear the output buffer
 									LDA floatAddup CPI 0 BEQ fp_output								; remains a final addup?
 										LDI '1' STR floatPtr1														; do a final roundup to "1"!!!
 	
-								; ***** PRINT "INTEGER.FRACTION" BUFFER *****
+								; ***** PRINT "-INTEGER.FRACTION" BUFFER *****
 	fp_output:		LDA floatSignA LSL BCC fp_printbuf									; check for negative
 									LDI '-' OUT JPS WaitUART
 	fp_printbuf:	LDI <floatIntStart STA floatPtr+0										; print out the buffer
@@ -595,7 +596,7 @@ FloatPrint:			CLB floatEE CLB floatSignB											; clear the output buffer
 									OUT JPS WaitUART
 									INW floatPtr JPA fp_loopbuf2
 	
-								; CHECK FOR AND PRINT OUT A BASE-10 EXPONENT
+								; CHECK FOR AND PRINT OUT A BASE-10 EXPONENT "e-xx"
 	fp_checkee:		LDA floatEE CPI 0 BEQ fp_nosci BPL fp_posee					; check if base-10 exponent is non-zero
 									NEG STS -2																				; store inverted exponent on the stack
 									LDI 'e' OUT JPS WaitUART LDI '-' OUT JPS WaitUART
@@ -637,10 +638,10 @@ FloatPrint:			CLB floatEE CLB floatSignB											; clear the output buffer
 ; Reads a positive value in decimal format starting from <lineptr> into A
 ;	SP-2: 0: A is invalid, >0: A is valid
 ; ***********************************************************************
-FloatRead:			CLB floatValid																			; devalidate parsed result
-								CLB floatSignA CLB floatSignB												; will from now on never change
-								CLW floatManA+0 CLW floatManA+2 CLB floatExpA				; clear floatex A
-								CLW floatManC+0 CLW floatManC+2 CLB floatExpC				; clear floatex C (will later be added to A)
+FloatRead:			CLB floatValid																	; devalidate parsed result
+								CLB floatSignA CLB floatSignB										; will from now on never change
+								CLW floatManA+0 CLW floatManA+2 CLB floatExpA		; clear floatex A
+								CLW floatManC+0 CLW floatManC+2 CLB floatExpC		; clear floatex C (will later be added to A)
 								
 								; PARSE AN INTEGER NUMBER
 	fr_nintdig:		LDR lineptr										  	; PARSE FOR THE NEXT DIGIT
@@ -815,7 +816,3 @@ floatStore:			0, 0, 0, 0, 0, 0, 0, 0						; 64 bits for storing results
 lineptr:				$0000															; current parsing position
 
 *=$ff10					OS_Buffer:			                  ; OS line input buffer
-
-								#begin
-
-*=$8000

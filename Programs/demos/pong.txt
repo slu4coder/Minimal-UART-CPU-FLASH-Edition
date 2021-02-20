@@ -198,7 +198,6 @@ Cursorprint1:	STS 0
               LDI '1'   						; "1" ausgeben
 							JPA CursorZehner
 
-
                 #end
                 *=$fe00
 spos:           0                   ; x-Position des Schlägers (links)
@@ -208,6 +207,3 @@ xvel:           0                   ; signed Geschwindigkeitsvektor des Balls
 yvel:           0
 var:            0, 0                ; Zählvariable
 Print_ptr:			0, 0								; Zeiger auf den Text
-
-								#begin
-								*=$8000

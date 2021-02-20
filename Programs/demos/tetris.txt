@@ -528,7 +528,7 @@ controltext:  10, 10, 10                     ; output text for keyboard controls
               "W - Rotate", 10
               "S - Drop", 0
 
-highscore:    $1a70                          ; holding the current highscore
+highscore:    $1a70                              ; holding the current highscore
 
 minos:        0,  0,  1,  0,  0, -1, 1, -1,   1  ; Quadrat   ; initial tetrominos with initial x-offset for SRS
               -1, -1, 0,  -1, 0, 0,  1, 0,    0  ; Z
@@ -573,7 +573,3 @@ vary:         0
 dropsteps:    0         ; counting the hard drop steps (for points)
 anzrows:      0         ; count the number of cleared lines
 rowfull:      0         ; boolean indicating whether a line was complete
-
-							#begin
-							
-							*=$8000
