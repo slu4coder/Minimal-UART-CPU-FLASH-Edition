@@ -14,10 +14,11 @@ OS_PrintText: 	LDS -1 STA memptra+0
   printloop:  	LDR memptra CPI 0	    	          ; 15 Print routine
 								BEQ printend          		        ; 5(6) string zuende?
             	  	OUT NOP NOP NOP NOP NOP NOP NOP NOP ; 122
-        		    	INW memptra         		        ; 12 zeige auf das nächste Zeichen
+									INW memptra         		        ; 12 zeige auf das nächste Zeichen
      		        	JPA printloop                   ; 6
   printend:	  	RTS
 
 memptra:				$0000									; text pointer
 
+								#begin
                 *=$8000
