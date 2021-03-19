@@ -11,9 +11,7 @@
           LDI 0 STA ypos+0 LDI 1 STA ypos+1
           LDI 80 STA xvel LDI 127 STA yvel
 
-start:    INP                 ; Tastendruck => Schläger bewegen
-          CPI 0
-          BEQ movitx          ; NIX gedrückt?
+start:    INP BEQ movitx                 ; Tastendruck => Schläger bewegen
 
 ; *********************
 ; ***** Steuerung *****
@@ -198,12 +196,17 @@ Cursorprint1:	STS 0
               LDI '1'   						; "1" ausgeben
 							JPA CursorZehner
 
-                #end
-                *=$fe00
-spos:           0                   ; x-Position des Schlägers (links)
-xpos:           0, 0                ; LSB, MSB der x-Textposition des Balls
-ypos:           0, 0                ; LSB, MSB der y-Textposition des Balls
-xvel:           0                   ; signed Geschwindigkeitsvektor des Balls
-yvel:           0
-var:            0, 0                ; Zählvariable
-Print_ptr:			0, 0								; Zeiger auf den Text
+              #end
+*=$ef00                           ; put variables into temp RAM
+
+spos:         0                   ; x-Position des Schlägers (links)
+xpos:         0, 0                ; LSB, MSB der x-Textposition des Balls
+ypos:         0, 0                ; LSB, MSB der y-Textposition des Balls
+xvel:         0                   ; signed Geschwindigkeitsvektor des Balls
+yvel:         0
+var:          0, 0                ; Zählvariable
+Print_ptr:		0, 0								; Zeiger auf den Text
+
+							#begin
+							*=$8000
+							

@@ -2,11 +2,11 @@
 ; **********************************************
 ; *****                                    *****
 ; *****                                    *****
-; *****    MINIMAL TETRIS by Slu4 (2020)   *****
+; *****    MINIMAL TETRIS by Slu4 (2021)   *****
 ; *****  with SUPER ROTATION SYSTEM (SRS)  *****
 ; ***** Original by Alexej Pajitnov (1984) *****
 ; *****                                    *****
-; *****       last update 22.12.2020       *****
+; *****       last update 19.03.2021       *****
 ; *****            ROM Version             *****
 ; *****                                    *****
 ; **********************************************
@@ -29,8 +29,7 @@ game_loop:    LDI 27 OUT JPS WaitOnUART   ; lass den cursor verschwinden
 
 ; ***** STATE INTRO **********************************************************************************
 
-state_intro:  INP                      ; non-blocking key input
-              CPI 32
+state_intro:  INP CPI 32               ; non-blocking key input
               BNE game_loop            ; immediate loop-back
                 LDI <vram STA ptr+0    ; GAME VORBEREITEN!!!
                 LDI >vram STA ptr+1    ; clear playfield
@@ -79,13 +78,12 @@ state_run:    INW gameframes           ; Zeit weiterzählen
                 LDA xpos STS -3 LDA ypos INC STS -4
                 JPS TestShape
                 LDS -3 DEC
-                BCC run_placeit                           ; Stelle BESETZT => Stein plazieren
+                BCC run_placeit                         ; Stelle BESETZT => Stein plazieren
                   LDI '.' STA shapechar JPS PrintShape  ; Stelle war frei => Stein fällt runter und weiter
                   INB ypos             
                   LDI '#' STA shapechar JPS PrintShape
 
-run_keyboard: INP                                       ; Steuerung (non-blocking key input)
-              CPI 0 BEQ game_loop
+run_keyboard: INP BEQ game_loop                         ; Steuerung (non-blocking key input)
               CPI 'a' BEQ a_key
               CPI 'd' BEQ d_key
               CPI 'w' BEQ w_key
@@ -199,8 +197,7 @@ rpnewshape:     CLB dropsteps
 
 ; ***** STATE OVER *****************************************************************************
 
-state_over:   INP                     ; need to be non-blocking, so we can't use WIN here
-              CPI 32
+state_over:   INP CPI 32
               BNE game_loop
                 JPA game_restart
 
@@ -542,11 +539,11 @@ wintable:     0, 20, 50, 100, 250           ; points depending on the number of 
 
               #end
 
-              *=$fd00
+              *=$ef00
 vram:         ; ab hier 20*10 bytes Video RAM
 
-              *=$fdc8
-Dec16_char:		'0'
+              *=$efc8 
+Dec16_char:		'0'                           ; Variablen
 Dec16_A:			0, 0
 Dec16_B:			0, 0
 
@@ -573,3 +570,6 @@ vary:         0
 dropsteps:    0         ; counting the hard drop steps (for points)
 anzrows:      0         ; count the number of cleared lines
 rowfull:      0         ; boolean indicating whether a line was complete
+
+#begin
+*=$8000
