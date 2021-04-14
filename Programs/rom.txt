@@ -1,5 +1,5 @@
-; MinOS 1.4 for the 8-Bit Minimal Computer System (FLASH Edition)
-; written by Carsten Herting - last update Mar 16th 2021
+; MinOS 1.5 for the 8-Bit Minimal Computer System (FLASH Edition)
+; written by Carsten Herting - last update Apr 14th 2021
 
 ; USAGE for In-situ programming of OS: Open command shell,
 ; type asm rom.txt , copy & paste date via terminal to
@@ -8,22 +8,18 @@
 ; *********************************
 ; Create a file header for OS image
 ; *********************************
-*=$e000
-	#end
-	*=$0000
-	#begin
-								0                                              ; = NOP, creates a non-deletable invalid filename...
-                JPA OS_Copier                                  ; ... and jumps to OS copier routine
+								0                                              ; = NOP, creates a non-deletable invalid filename...               
+								JPA OS_Copier                                  ; ... and jumps to OS copier routine
                 $ff, $ff, $ff, $ff, $ff, $ff, $ff, $ff         ; rest of the filename can
                 $ff, $ff, $ff, $ff, $ff, $ff, $ff, $ff         ; be filled with anything
                 $f000                                          ; start address: value not important
                 $0fe8                                          ; byte size: reserves first 4KB for OS image
 
-; ******************
-; Copies the OS code
-; ******************
-OS_Copier:      LDI <OS_Code STA OS_PtrA+0                     ; OS source address
-                LDI >OS_Code STA OS_PtrA+1
+; ****************************
+; Copies the OS image to $f000 
+; ****************************
+OS_Copier:      LDI <OS_Image STA OS_PtrA+0                    ; OS source address
+                LDI >OS_Image STA OS_PtrA+1
                 LDI <$f000 STA OS_PtrB+0                       ; OS target address
                 LDI >$f000 STA OS_PtrB+1
   copyos:       LDR OS_PtrA STR OS_PtrB                        ; copy the OS code to it's RAM area
@@ -31,13 +27,18 @@ OS_Copier:      LDI <OS_Code STA OS_PtrA+0                     ; OS source addre
                 CPI $ff BNE copyos                             ; copy ends with memory location $feff
                   JPA $f000                                    ; start the OS
 
-OS_Code:                                                       ; OS code has to be assembled for $f000
+; ************************
+;
+; START OF THE MINOS IMAGE
+;
+; ************************
+OS_Image:
 
 ; ******************************
 ; Memory Monitor core aka WOZMON
 ; ******************************
-  #end          ; comment this out when loading the OS directly
-  *=$f000
+  #end          
+  *=$f000       																							 ; assemble with this destination address
   #begin
                 LDI <OS_TopOfStack STA OS_StackPointer         ; don't change first 10 bytes: 'prom.txt' relies on it
                 LDI <welcometxt STS -3 LDI >welcometxt STS -4
@@ -476,63 +477,62 @@ OS_DirTable:      INB OS_ParsePtr
                       JPS OS_PrintEnter
                       JPA OS_LineStart
 
-; *****************************************************************************
-; COMMAND "Erase file from SSD", migrates all stuff above
+; **********************************************************************
+; COMMAND "Erase file from SSD", migrates the stuff above
 ; uses: OS_InpBuf+20/21: pointer to potential data to keep
 ;       OS_InpBuf+23:    SSD sector start addr MSB backup
-;       OS_InpBuf+24/25: pointer to first free SSD byte BEFORE erasing anything
-; *****************************************************************************
-OS_ZapFile:         INB OS_ParsePtr
-                    JPS SSD_FindFile
-                    LDS -2 CPI 0 BEQ OS_ErrorStart                                ; can't find that file!
-                      ; OS_PtrA = valid file pointer
-                      JPS OS_AreYouSure                                             ; ask for permission
+;       OS_InpBuf+24/25: pointer to first free SSD byte PRIOR to erasing
+; **********************************************************************
+OS_ZapFile:         INB OS_ParsePtr                                               ; move to potential filename start
+
+                    JPS SSD_FindFile                                              ; SUCCESS => PtrA = file pointer
+                    LDS -2 CPI 0 BEQ OS_ErrorStart                                ; FAILURE => can't find that file!
+                      JPS OS_AreYouSure                                           ; file found, now ask for permission
                       LDS -2 CPI 0 BEQ OS_LineStart
 
-                      JPS SSD_FindFree                                            ; does not mess with PtrA
-                      LDA OS_PtrC+0 STA OS_InpBuf+24                              ; Erreichen => end copy
-                      LDA OS_PtrC+1 STA OS_InpBuf+25
-                      LDI <OS_SSDRAMBuf STA OS_PtrC+0                             ; initialize the 4K SSD buffer area to $ff
-                      LDI >OS_SSDRAMBuf STA OS_PtrC+1
-  cfb_loop:           LDI $ff STR OS_PtrC INW OS_PtrC
-                      LDA OS_PtrC+1 CPI $f0 BCC cfb_loop                      
+                      JPS SSD_FindFree                                            ; returns PtrC, doesn't mess with PtrA
+                      LDA OS_PtrC+0 STA OS_InpBuf+24                              ; Reaching 1st free byte => end copy!
+                      LDA OS_PtrC+1 STA OS_InpBuf+25                              ; store the address of the 1st free
                       
                       ; copy current sector's "data to keep" from start of sector to OS_PtrA-1 to SSD buffer                  
                       CLB OS_PtrB+0 LDA OS_PtrA+1                                 ; calculate sector start address in OS_PtrB
                       LSR LSR LSR LSR LSL LSL LSL LSL                             ; clear lower nibble of MSB
                       STA OS_PtrB+1 STA OS_InpBuf+23                              ; store sector start addr in OS_InpBuf+23 too
                       LDI <OS_SSDRAMBuf STA OS_PtrC+0                             ; destination = SSD buffer in RAM
-                      LDI >OS_SSDRAMBuf STA OS_PtrC+1
+                      LDI >OS_SSDRAMBuf STA OS_PtrC+1                             ; to PtrC
 
                       ; PtrA: pointer to file to be erased, PtrB: sector start address, PtrC: start of RAM buffer
-  e_copyloop1:        LDA OS_PtrB+1 CPA OS_PtrA+1 BNE e_copynext                  ; keep potential rest data below file
-                        LDA OS_PtrB+0 CPA OS_PtrA+0 BNE e_copynext
+  e_copyloop1:        LDA OS_PtrB+1 CPA OS_PtrA+1 BCC e_copynext                  ; keep potential rest data below the file to be erased
+                        LDA OS_PtrB+0 CPA OS_PtrA+0 BCC e_copynext
                           JPA e_gotokeep                                          ; everything until start of erase data has been copied
-  e_copynext:         LDR OS_PtrB STR OS_PtrC                                     ; copy this data into SSD buffer
+  e_copynext:         LDR OS_PtrB STR OS_PtrC                                     ; copy data below file into SSD buffer
                       INW OS_PtrB INW OS_PtrC
                       JPA e_copyloop1
   
-  e_gotokeep:         ; PtrA: Start of file to be erased, PtrC: next free byte in SSD buffer
+  e_gotokeep:         ; PtrA: Start of file to be erased
                       LDI 22 ADW OS_PtrA                                          ; advance over header to bytesize LSB
                       LDR OS_PtrA STA OS_PtrB+0 INW OS_PtrA                       ; extract bytesize -> PtrB
                       LDR OS_PtrA STA OS_PtrB+1 INW OS_PtrA                       ; PtrA after header
-                      LDA OS_PtrB+1 ADB OS_PtrA+1 LDA OS_PtrB+0 ADW OS_PtrA       ; add size => PtrA points beyond file
+                      LDA OS_PtrB+1 ADB OS_PtrA+1 LDA OS_PtrB+0 ADW OS_PtrA       ; add size => PtrA now points beyond file to be erased
 
-                      ; fill up SSD buffer with more data to keep
+                      ; fill up SSD buffer with more data to keep up to existing data, fill rest with $ff
                       ; PtrA: Start of potential data to keep, PtrC: next free pos in OS_SSDRAMBuf
-  e_copyloop2:        LDA OS_PtrC+1 CPI $f0 BCC e_copynext2                       ; check, if buffer block is full
-                        LDI '.' OUT JPS OS_WaitUART
-                        JPA e_blockready                                          ; this is just another block ready
-  e_copynext2:        LDR OS_PtrA STR OS_PtrC                                     ; copy more data into SSD buffer
+  e_copyloop2:        LDA OS_PtrC+1 CPI $f0 BCS e_blockready                      ; check, if buffer block is ready/full
+                        LDA OS_PtrA+1 CPA OS_InpBuf+25 BCC e_copynext2            ; check against existing data
+                          LDA OS_PtrA+0 CPA OS_InpBuf+24 BCC e_copynext2
+                            LDI $ff STR OS_PtrC INW OS_PtrC                       ; fill with $ff
+                            JPA e_copyloop2
+  e_copynext2:        LDR OS_PtrA STR OS_PtrC                                     ; write data into SSD buffer RAM
                       INW OS_PtrA INW OS_PtrC
                       JPA e_copyloop2
 
+                      ; -----------------------------------------------------
   e_blockready:       ; save PtrA (start of next potential data to keep) in OS_InpBuf+20/21 for later use
                       LDA OS_PtrA+0 STA OS_InpBuf+20
                       LDA OS_PtrA+1 STA OS_InpBuf+21
 
                       ; erase FLASH block
-                      CLB OS_PtrA+0 LDA OS_InpBuf+23 STA OS_PtrA+1                ; PtrA = FLASH sector start address
+                      CLB OS_PtrA+0 LDA OS_InpBuf+23 STA OS_PtrA+1                ; PtrA = sector start address to be erased
                       JPS FLASH_Erase
 
                       ; write data in RAM buffer back to FLASH block
@@ -541,22 +541,23 @@ OS_ZapFile:         INB OS_ParsePtr
                       LDI <$1000 STA OS_PtrB+0                                    ; set bytesize
                       LDI >$1000 STA OS_PtrB+1
                       CLB OS_PtrC+0 LDA OS_InpBuf+23 STA OS_PtrC+1                ; set destination
-                        LDI '.' OUT JPS OS_WaitUART
-                      JPS SSD_Write                                               ; PtrA now points to NEXT potential data to keep
+                        LDI '.' OUT JPS OS_WaitUART                               ; indicate block erase & write progress
+                      JPS SSD_Write
                       LDA OS_PtrB+1 CPI $ff BNE OS_ErrorStart                     ; check error state
 
-                      ; PtrC now points to last byte written to FLASH
-                      LDA OS_InpBuf+25 SBB OS_PtrC+1 BCC e_goon                   ; ist next to write < next free -> loop
-                      LDA OS_InpBuf+24 SBW OS_PtrC BCC e_goon
-                        LDI 10 OUT JPS OS_WaitUART
-                        JPA OS_LineStart ; es wurde bereits bis zur alten Datengrenze geschrieben
-  e_goon:               ; restore the pointers A and C properly
-                        LDI $10 ADB OS_InpBuf+23                                  ; increment the sector address to write to
-                        LDI <OS_SSDRAMBuf STA OS_PtrC+0                           ; PtrC: Start of RAM buffer again
-                        LDI >OS_SSDRAMBuf STA OS_PtrC+1
-                        LDA OS_InpBuf+20 STA OS_PtrA+0                            ; PtrA: restore pointer to next data to keep
-                        LDA OS_InpBuf+21 STA OS_PtrA+1 
-                        JPA e_copyloop2                                           ; process next whole block
+                      ; PtrC: points beyond last byte written to SSD
+                      LDA OS_PtrC+1 CPA OS_InpBuf+25 BCC e_goon BNE e_alldone     ; wurde bereits über existing data hinaus geschrieben?
+                        LDA OS_PtrC+0 CPA OS_InpBuf+24 BCS e_alldone                        
+  e_goon:                 ; restore the pointers A and C properly
+                          LDI $10 ADB OS_InpBuf+23                                ; increment the sector address to write to
+                          LDI <OS_SSDRAMBuf STA OS_PtrC+0                         ; PtrC: SSD buffer start in RAM
+                          LDI >OS_SSDRAMBuf STA OS_PtrC+1
+                          LDA OS_InpBuf+20 STA OS_PtrA+0                          ; PtrA: restore pointer to next data to keep
+                          LDA OS_InpBuf+21 STA OS_PtrA+1 
+                          JPA e_copyloop2                                         ; process next whole block
+  e_alldone:          LDI 10 OUT JPS OS_WaitUART                                  ; ALLES FERTIG!
+                      JPA OS_LineStart
+
 
 ; ************************************************************************
 ; Eraseses a 4KB FLASH memory block without ANY protection (use with care)
@@ -656,7 +657,8 @@ SSD_Write:        DEW OS_PtrB BCC fw_return                     ; Anzahl runterz
   fw_return:        RTS
 
 ; ************************************************************************************
-; Find first FREE byte in SSD, returns pointer in OS_PtrC (>=$8000 if nothing is free)
+; Find first FREE byte in SSD by skipping over all filenames,
+; returns pointer in OS_PtrC (>=$8000 if nothing is free),
 ; modifies: PtrC, PtrD
 ; ************************************************************************************
 SSD_FindFree:     LDI <OS_SSDStart STA OS_PtrC+0
@@ -673,7 +675,7 @@ SSD_FindFree:     LDI <OS_SSDStart STA OS_PtrC+0
 
 ; *********************************************************************************
 ; Find <filename> at OS_ParsePtr, OS_PtrA returns file pointer (check for SUCCESS!)
-; <filename> can have leading spaces, must be either 0- or ENTER-terminated
+; Note: <filename> may have leading spaces, must be either 0- or ENTER-terminated
 ; modifies: ParsePtr, PtrA, PtrB, PtrC
 ; *********************************************************************************
 SSD_FindFile:     LDR OS_ParsePtr
@@ -725,7 +727,7 @@ SSD_FindFile:     LDR OS_ParsePtr
 								
   welcometxt: 	27, "[H", 27, "[H", 27, "[J"
                 "+--------------------------------------+", 10
-                "| MINIMAL CPU SYSTEM 1.4 by C. Herting |", 10
+                "| MINIMAL CPU SYSTEM 1.5 by C. Herting |", 10
                 "| 32KB RAM 512KB SSD - Type m for menu |", 10
                 "+--------------------------------------+", 10
                 0
