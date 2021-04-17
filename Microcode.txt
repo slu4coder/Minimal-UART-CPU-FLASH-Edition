@@ -1,5 +1,6 @@
 // MINIMAL UART CPU (MINIMAL CPU SYSTEM) - FLASH EDITION
-// MICROCODE VERSION 1.4 written by Carsten Herting 19.03.2021
+// MICROCODE VERSION 1.5 written by Carsten Herting 17.04.2021
+// Use for board revisions 1.3 and higher.
 
 #define NOP 		CO|MI, CO|MI|HI, RO|HI|CEME, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 #define BNK			CO|MI, CO|MI|HI, RO|HI|CEME, AO|EC|HI, IC, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
@@ -93,8 +94,8 @@
 uint16_t mEEPROM[8192]		// microcode depending on flags, opcode and stepcounter
 {
 	/*NCZ		target: A, operand: none     																									target: A, operand: immediate			target: A, operand:	byte at abs address			target: A, operand:	byte at rel address			target: byte at abs address, operand: A		 	target: word at abs address, operand: A					stack operations							 	BNE  BEQ  BCC  BCS  BPL  BMI */
-	/*---*/ NOP, BNK, Out, CLC, SEC, LSL, ROL0, LSR0, ROR0, ASR00x, INP,	NEG, Inc, Dec, 	LDI, ADI, SBI, CPI, ACI0, SCI0,		JPA, LDA, STA, ADA, SBA, CPA, ACA0, SCA0,		JPR, LDR, STR, ADR, SBR, CPR, ACR0, SCR0, 	CLB, NEB, INB, DEB,	ADB, SBB, ACB0, SCB0,		CLW, NEW0, INW0, DEW0, ADW0, SBW0, ACW0, SCW0, 	LDS, STS, PHS, PLS, JPS, RTS, 	BRA, ___, BRA, ___, BRA, ___,
-	/*--1*/ NOP, BNK, Out, CLC, SEC, LSL, ROL0, LSR0, ROR0, ASR00x, INP,	NEG, Inc, Dec, 	LDI, ADI, SBI, CPI, ACI0, SCI0,  	JPA, LDA, STA, ADA, SBA, CPA, ACA0, SCA0, 	JPR, LDR, STR, ADR, SBR, CPR, ACR0, SCR0, 	CLB, NEB, INB, DEB, ADB, SBB, ACB0, SCB0,		CLW, NEW0, INW0, DEW0, ADW0, SBW0, ACW0, SCW0, 	LDS, STS, PHS, PLS, JPS, RTS, 	___, BRA, BRA, ___, BRA, ___,
+	/*---*/	NOP, BNK, Out, CLC, SEC, LSL, ROL0, LSR0, ROR0, ASR00x, INP,	NEG, Inc, Dec, 	LDI, ADI, SBI, CPI, ACI0, SCI0,		JPA, LDA, STA, ADA, SBA, CPA, ACA0, SCA0,		JPR, LDR, STR, ADR, SBR, CPR, ACR0, SCR0, 	CLB, NEB, INB, DEB,	ADB, SBB, ACB0, SCB0,		CLW, NEW0, INW0, DEW0, ADW0, SBW0, ACW0, SCW0, 	LDS, STS, PHS, PLS, JPS, RTS, 	BRA, ___, BRA, ___, BRA, ___,
+	/*--1*/	NOP, BNK, Out, CLC, SEC, LSL, ROL0, LSR0, ROR0, ASR00x, INP,	NEG, Inc, Dec, 	LDI, ADI, SBI, CPI, ACI0, SCI0,  	JPA, LDA, STA, ADA, SBA, CPA, ACA0, SCA0, 	JPR, LDR, STR, ADR, SBR, CPR, ACR0, SCR0, 	CLB, NEB, INB, DEB, ADB, SBB, ACB0, SCB0,		CLW, NEW0, INW0, DEW0, ADW0, SBW0, ACW0, SCW0, 	LDS, STS, PHS, PLS, JPS, RTS, 	___, BRA, BRA, ___, BRA, ___,
 	/*-1-*/ NOP, BNK, Out, CLC, SEC, LSL, ROL1, LSR1, ROR1, ASR01x, INP,	NEG, Inc, Dec, 	LDI, ADI, SBI, CPI, ACI1, SCI1,  	JPA, LDA, STA, ADA, SBA, CPA, ACA1, SCA1, 	JPR, LDR, STR, ADR, SBR, CPR, ACR1, SCR1, 	CLB, NEB, INB, DEB, ADB, SBB, ACB1, SCB1,		CLW, NEW1, INW1, DEW1, ADW1, SBW1, ACW1, SCW1, 	LDS, STS, PHS, PLS, JPS, RTS, 	BRA, ___, ___, BRA, BRA, ___,
 	/*-11*/ NOP, BNK, Out, CLC, SEC, LSL, ROL1, LSR1, ROR1, ASR01x, INP,	NEG, Inc, Dec, 	LDI, ADI, SBI, CPI, ACI1, SCI1,  	JPA, LDA, STA, ADA, SBA, CPA, ACA1, SCA1, 	JPR, LDR, STR, ADR, SBR, CPR, ACR1, SCR1, 	CLB, NEB, INB, DEB, ADB, SBB, ACB1, SCB1,		CLW, NEW1, INW1, DEW1, ADW1, SBW1, ACW1, SCW1, 	LDS, STS, PHS, PLS, JPS, RTS, 	___, BRA, ___, BRA, BRA, ___,
 	/*1--*/ NOP, BNK, Out, CLC, SEC, LSL, ROL0, LSR0, ROR0, ASR10x, INP,	NEG, Inc, Dec, 	LDI, ADI, SBI, CPI, ACI0, SCI0,  	JPA, LDA, STA, ADA, SBA, CPA, ACA0, SCA0, 	JPR, LDR, STR, ADR, SBR, CPR, ACR0, SCR0, 	CLB, NEB, INB, DEB, ADB, SBB, ACB0, SCB0,		CLW, NEW0, INW0, DEW0, ADW0, SBW0, ACW0, SCW0, 	LDS, STS, PHS, PLS, JPS, RTS, 	BRA, ___, BRA, ___, ___, BRA,
