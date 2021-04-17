@@ -4,7 +4,7 @@ EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 5 9
-Title ""
+Title "UART Transmitter"
 Date "2021-03-10"
 Rev "1.3.2"
 Comp ""

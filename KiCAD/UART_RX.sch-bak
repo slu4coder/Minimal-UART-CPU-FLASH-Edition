@@ -5,8 +5,8 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 4 9
 Title ""
-Date "2021-02-13"
-Rev "1.3.1"
+Date "2021-03-10"
+Rev "1.3.2"
 Comp ""
 Comment1 ""
 Comment2 "creativecommons.org/licenses/by-nc-sa/3.0/deed.en"
@@ -621,14 +621,4 @@ Wire Wire Line
 Connection ~ 3800 1250
 Wire Wire Line
 	3800 1250 3900 1250
-Text Notes 6750 4100 0    50   ~ 0
-Sync. DR is needed to prevent\nDR going high during the second\nphase of the clock (this would\nallow for erasing the value without\nstoring it in a register).
-Text Notes 6750 5800 0    50   ~ 0
-Active only during\nsecond clockphase:\n\nOnly after reading a\nvalue, the circuit is\nreset and ready to\nreceive another char.
-Text Notes 4300 5750 0    50   ~ 0
-Sampling happens at\nthe start of a clock cycle.
-Text Notes 8650 6150 0    50   ~ 0
-If no data is present,\nreading will yield $ff\nsince 74HC245 remains\ninactive and the bus\nlines are tied HIGH.
-Text Notes 750  1400 0    50   ~ 0
-A falling edge in RX\nactivates the counter\nfor the duration of one\nmessage.\nThen, this shift register\nremains frozes and DR\nis signaled.
 $EndSCHEMATC

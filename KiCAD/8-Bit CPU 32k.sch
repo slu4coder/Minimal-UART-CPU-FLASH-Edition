@@ -1439,6 +1439,4 @@ Wire Wire Line
 	3950 3850 3950 5050
 Text Notes 3000 8300 0    50   ~ 0
 The bus is tied to $ff\nif not driven actively.
-Text Notes 5700 2600 0    50   ~ 0
-The maximum stable clock speed\nis limited by the access time of\nthe control FLASH (70ns), RC time\nconstant of the passive bus (70ns)\nand a small switching delay of the\nlogic gates (10ns). The system runs\nreliably up to 3MHz and becomes\nunstable at 4MHz.\nLowering the bus resistors down\nto 330Ohm MIGHT make the system\nwork at 3.6864MHz but it is NOT\nrecommended.\n
 $EndSCHEMATC
