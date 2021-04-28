@@ -1,4 +1,4 @@
-					*=$8000
+#org 0x8000
 
 start:		LDI 32						; prints all visible chars starting from 32 (SPACE) up until 127 (INVERTED LEFT ARROW)
 
@@ -7,5 +7,4 @@ next:			OUT NOP NOP NOP NOP NOP NOP NOP NOP NOP NOP
 					BPL next					; getting > 127?
 						JPA start
 
-					#begin
-					*=$8000
+#org 0x8000
