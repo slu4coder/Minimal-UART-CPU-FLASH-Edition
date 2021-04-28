@@ -1,12 +1,11 @@
-          *=$8000
+          #org 0x8000
 ; ***********************************
 ; *****                         *****
 ; ***** PONG by C. Herting 2020 *****
 ; *****                         *****
 ; ***********************************
-          LDI $fe STA $ffff   ; init stack
-
-          LDI 25 STA spos     ; initialize start variables
+          LDI 0xfe STA 0xffff            ; init stack
+          LDI 25 STA spos                ; initialize start variables
           LDI 0 STA xpos+0 LDI 13 STA xpos+1
           LDI 0 STA ypos+0 LDI 1 STA ypos+1
           LDI 80 STA xvel LDI 127 STA yvel
@@ -137,7 +136,7 @@ waitloop: DEW var
 
           JPA start
 
-text:   	"GAME OVER - PRESS SPACE TO PLAY AGAIN", 0
+text:   	'GAME OVER - PRESS SPACE TO PLAY AGAIN', 0
 
 ; ***** Schreibt einen nullterminierten String *****
 PrintText: 		LDS -1 STA Print_ptr+0
@@ -185,20 +184,20 @@ CursorEiner:     	ADI '0'
 WaitOnUART:       NOP NOP NOP NOP NOP NOP NOP NOP
 							  	RTS
 Cursorprint3:	STS 0                 ; Einer sichern
-              LDI '3'   						; "3" ausgeben
+              LDI '3'   						; '3' ausgeben
 CursorZehner: OUT NOP NOP NOP NOP NOP NOP NOP NOP NOP
               LDS 0                 ; Einer laden
               JPA CursorEiner
 Cursorprint2:	STS 0
-              LDI '2'   						; "2" ausgeben
+              LDI '2'   						; '2' ausgeben
 							JPA CursorZehner
 Cursorprint1:	STS 0
-              LDI '1'   						; "1" ausgeben
+              LDI '1'   						; '1' ausgeben
 							JPA CursorZehner
 
               #end
-*=$ef00                           ; put variables into temp RAM
-
+#org 0xef00
+              ; put variables into temp RAM
 spos:         0                   ; x-Position des Schlägers (links)
 xpos:         0, 0                ; LSB, MSB der x-Textposition des Balls
 ypos:         0, 0                ; LSB, MSB der y-Textposition des Balls
@@ -206,7 +205,3 @@ xvel:         0                   ; signed Geschwindigkeitsvektor des Balls
 yvel:         0
 var:          0, 0                ; Zählvariable
 Print_ptr:		0, 0								; Zeiger auf den Text
-
-							#begin
-							*=$8000
-							
