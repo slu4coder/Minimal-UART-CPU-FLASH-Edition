@@ -1,10 +1,10 @@
 # Minimal UART Computer System (Revision 1.3 aka FLASH Edition)
 
-There is a new revision 1.5 coming soon featuring 512KB FLASH SSD, 3.6864MHz clock speed and an expansion port.
+NEWS: There is a new revision 1.5 coming soon featuring 512KB FLASH SSD, 3.6864MHz clock speed and an expansion port!
 
-User Manual: https://docs.google.com/document/d/1c2ZHtLd1BBAwcBAjBZZJmCA3AXpbpv80dlAtsMYpuF4/edit?usp=sharing
+NEWS: User Manual: https://docs.google.com/document/d/1c2ZHtLd1BBAwcBAjBZZJmCA3AXpbpv80dlAtsMYpuF4/edit?usp=sharing
 
-The Minimal CPU System can be operated via a USB-to-serial breakout board and a terminal emulation (e. g. Tera Term) or via the dedicated serial 'Minimal Terminal': https://github.com/slu4coder/Minimal-Terminal
+NEWS: The Minimal CPU System can be operated via a USB-to-serial breakout board and a terminal emulation (e. g. Tera Term) or via the dedicated serial 'Minimal Terminal': https://github.com/slu4coder/Minimal-Terminal
 
 I've built my own Computer from scratch - using nothing but TTL chips, because, well, why not? I wanted a CPU that is easy to understand, fun to build and powerful enough to allow for programming educational stuff and little games on it. Ah, and by the way - it should be as simple as possible - sort of the "Simplest Usable Personal Computer". This repo provides you with everything you need to follow my one-and-a-half-year journey down this rabbit hole. Besides running some video game classics, this little DIY CPU is capable of parsing arbitrary mathmatical expressions and performing floating point calculations in single (32-bit) precision. And it comes with an SSD file system, too, since it uses it's own FLASH IC as permanent SSD storage.
 
