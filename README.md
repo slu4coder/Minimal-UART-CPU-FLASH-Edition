@@ -11,7 +11,6 @@ I've built my own Computer from scratch - using nothing but TTL chips, because, 
 WHAT YOU GET:
 
   ● Block diagram of the CPU and overview it's instruction set
-
   ● KiCAD project files with detailed schematics and PCB layout
   
   ● Gerber files ready to be submitted at any PCB manufacturer of your choice
