@@ -1,10 +1,12 @@
-# Minimal UART Computer (Revision 1.3 aka FLASH Edition)
+# Minimal UART Computer System (Revision 1.3 aka FLASH Edition)
 
-There is a new (big!) release coming soon: https://github.com/slu4coder/Minimal-UART-CPU-SYSTEM
+There is a new revision 1.5 coming soon featuring 512KB FLASH SSD, 3.6864MHz clock speed and an expansion port.
 
 User Manual: https://docs.google.com/document/d/1c2ZHtLd1BBAwcBAjBZZJmCA3AXpbpv80dlAtsMYpuF4/edit?usp=sharing
 
-I built my own Computer from scratch - using nothing but TTL chips, because, well, why not? I wanted a CPU that is easy to understand, fun to build and powerful enough to allow for programming educational stuff and little games on it. Ah, and by the way - it should be as simple as possible - sort of the "Simplest Usable Personal Computer Ever". Well, in case you're interested, this repo aims to provide you with everything you need to follow my one-and-a-half-year journey down this rabbit hole. This is the latest FLASH Edition of my Minimal UART Computer design. Besides running a video game classic, this little DIY CPU is now capable of parsing arbitrary mathmatical expressions and performing floating point calculations in single (32-bit) precision. And it comes with a SSD file system, too! That's right, it uses it's own FLASH IC as SSD memory.
+The Minimal CPU System can be operated via a USB-to-serial breakout board and a terminal emulation (e. g. Tera Term) or via the dedicated serial 'Minimal Terminal': https://github.com/slu4coder/Minimal-Terminal
+
+I've built my own Computer from scratch - using nothing but TTL chips, because, well, why not? I wanted a CPU that is easy to understand, fun to build and powerful enough to allow for programming educational stuff and little games on it. Ah, and by the way - it should be as simple as possible - sort of the "Simplest Usable Personal Computer". This repo provides you with everything you need to follow my one-and-a-half-year journey down this rabbit hole. Besides running some video game classics, this little DIY CPU is capable of parsing arbitrary mathmatical expressions and performing floating point calculations in single (32-bit) precision. And it comes with an SSD file system, too, since it uses it's own FLASH IC as permanent SSD storage.
 
 WHAT YOU GET:
 
@@ -51,4 +53,4 @@ I hope you find this information useful, educational or otherwise interesting. I
 https://www.youtube.com/channel/UCXYQcMpUBT3aaQKfmAVJNow
 
 Have fun!
-Slu4
+slu4
